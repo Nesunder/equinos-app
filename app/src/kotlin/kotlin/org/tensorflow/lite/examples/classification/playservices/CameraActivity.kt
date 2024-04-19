@@ -20,19 +20,23 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Matrix
+import androidx.exifinterface.media.ExifInterface
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
-import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
@@ -41,7 +45,6 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.drawToBitmap
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.tasks.Task
@@ -52,9 +55,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityCameraBinding
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
+import java.io.IOException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
@@ -68,7 +69,8 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var bitmapBuffer: Bitmap
 
     private val executor = Executors.newSingleThreadExecutor()
-    private val permissions = listOf(Manifest.permission.CAMERA)
+    private val permissions =
+        listOf(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE)
     private val permissionsRequestCode = Random.nextInt(0, 10000)
 
     private var lensFacing: Int = CameraSelector.LENS_FACING_BACK
@@ -97,6 +99,56 @@ class CameraActivity : AppCompatActivity() {
     }
     private var classifier: ImageClassificationHelper? = null
 
+    private val openGalleryLauncher: ActivityResultLauncher<Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK && result.data != null && result.data?.data != null) {
+                if (!pauseAnalysis) pauseAnalysis = true
+                //Acá se podría abrir una actividad nueva que tenga una interfaz más dedidcada a la clasificación de una imagen cargada, con la posibilidad de guardar,
+                // reemplazar la imagen, subirla al repo
+                val uri = result.data?.data!!
+                val imageBitmap: Bitmap? = getBitmapFromUri(uri)
+
+                val inputStream = contentResolver.openInputStream(uri)
+
+                //Obtengo la orientación de la imagen para dejarla derecha, así solo funciona desde api 24
+                val exifInterface = inputStream?.let {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        ExifInterface(it)
+                    } else {
+                        TODO("VERSION.SDK_INT < N")
+                    }
+                }
+
+                val orientation = exifInterface?.getAttributeInt(
+                    ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL
+                )
+
+                //Se aplican cambios en la imagen
+                val rotatedBitmap = imageBitmap?.let {
+                    configBitmap(
+                        it, orientation ?: ExifInterface.ORIENTATION_NORMAL
+                    )
+                }
+
+                activityCameraBinding.imagePredicted.setImageBitmap(rotatedBitmap)
+
+                val recognitions = classifier?.classify(
+                    rotatedBitmap!!, activityCameraBinding.imagePredicted.rotation.toInt()
+                )
+
+                reportRecognition(recognitions)
+
+                activityCameraBinding.imagePredicted.visibility = View.VISIBLE
+                activityCameraBinding.viewFinder.visibility = View.GONE
+                activityCameraBinding.saveButton?.visibility = View.VISIBLE
+            } else {
+                pauseAnalysis = false
+                activityCameraBinding.imagePredicted.visibility = View.GONE
+                activityCameraBinding.viewFinder.visibility = View.VISIBLE
+                activityCameraBinding.saveButton?.visibility = View.GONE
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         activityCameraBinding = ActivityCameraBinding.inflate(layoutInflater)
@@ -110,6 +162,10 @@ class CameraActivity : AppCompatActivity() {
 
         /* Cosas a agregar:
                 * Guardar la foto
+                * La interfaz inicial no debería ser la cámara, sino que sería una opción. También sería una opción subir una foto y clasificarla,
+                  pudiendo guardarla localmente y en el repo.
+                * También debería haber una opción desde la interfaz inicial de ver todas las fotos guardadas localmente.
+                * Botón para redirigir a la página del repo
                 * Calcular en el momento de sacar la foto para comparar el resultado
                 * Cargar foto y que la evalúe.
                 * Subir foto al repositorio como un usuario
@@ -117,18 +173,19 @@ class CameraActivity : AppCompatActivity() {
                 * cálculo en server?
          */
 
-        activityCameraBinding.uploadButton?.setOnClickListener {
-
+        activityCameraBinding.galleryButton?.setOnClickListener {
+            //ver el tema de permisos mejor
+            openGallery()
         }
 
         activityCameraBinding.cameraCaptureButton.setOnClickListener {
-
             // Disable all camera controls
             it.isEnabled = false
             if (pauseAnalysis) {
                 // If image analysis is in paused state, resume it
                 pauseAnalysis = false
                 activityCameraBinding.imagePredicted.visibility = View.GONE
+                activityCameraBinding.viewFinder.visibility = View.VISIBLE
                 activityCameraBinding.saveButton?.visibility = View.GONE
             } else {
                 // Otherwise, pause image analysis and freeze image
@@ -143,22 +200,28 @@ class CameraActivity : AppCompatActivity() {
                 activityCameraBinding.imagePredicted.setImageBitmap(uprightImage)
                 activityCameraBinding.imagePredicted.visibility = View.VISIBLE
                 activityCameraBinding.saveButton?.visibility = View.VISIBLE
-
-                activityCameraBinding.saveButton?.setOnClickListener {
-                    val classifiedImage: ImageView = activityCameraBinding.imagePredicted
-
-                    classifiedImage.drawToBitmap()
-
-                    lifecycleScope.launch {
-                        saveBitmapFile(getBitmapFromView(activityCameraBinding.flPreviewViewContainer!!))
-                    }
-                }
             }
-
 
             // Re-enable camera controls
             it.isEnabled = true
         }
+
+        activityCameraBinding.saveButton?.setOnClickListener {
+            lifecycleScope.launch {
+                saveBitmapFile(getBitmapFromView(activityCameraBinding.flPreviewViewContainer!!))
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        // Terminate all outstanding analyzing jobs (if there is any).
+        executor.apply {
+            shutdown()
+            awaitTermination(1000, TimeUnit.MILLISECONDS)
+        }
+        // Release TFLite resources
+        classifier?.close()
+        super.onDestroy()
     }
 
     /**
@@ -177,8 +240,8 @@ class CameraActivity : AppCompatActivity() {
             //has background drawable, then draw it on the canvas
             bgDrawable.draw(canvas)
         } else {
-            //does not have background drawable, then draw white background on the canvas
-            canvas.drawColor(Color.WHITE)
+            //does not have background drawable, then draw black background on the canvas
+            canvas.drawColor(Color.BLACK)
         }
         // draw the view on the canvas
         view.draw(canvas)
@@ -200,8 +263,7 @@ class CameraActivity : AppCompatActivity() {
                         put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/EquinosApp")
                     }
                     val uri = contentResolver.insert(
-                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                        contentValues
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues
                     )
 
                     path = uri?.path!!
@@ -237,15 +299,64 @@ class CameraActivity : AppCompatActivity() {
         return path
     }
 
-    override fun onDestroy() {
-        // Terminate all outstanding analyzing jobs (if there is any).
-        executor.apply {
-            shutdown()
-            awaitTermination(1000, TimeUnit.MILLISECONDS)
+    private fun configBitmap(bitmap: Bitmap, orientation: Int): Bitmap {
+        val matrix = Matrix().apply {
+            if (isFrontFacing) postScale(-1f, 1f)
+            when (orientation) {
+                ExifInterface.ORIENTATION_NORMAL -> return bitmap
+                ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> this.setScale(-1f, 1f)
+                ExifInterface.ORIENTATION_ROTATE_180 -> this.setRotate(180f)
+                ExifInterface.ORIENTATION_FLIP_VERTICAL -> {
+                    setRotate(180f)
+                    this.postScale(-1f, 1f)
+                }
+
+                ExifInterface.ORIENTATION_TRANSPOSE -> {
+                    setRotate(90f)
+                    postScale(-1f, 1f)
+                }
+
+                ExifInterface.ORIENTATION_ROTATE_90 -> setRotate(90f)
+                ExifInterface.ORIENTATION_TRANSVERSE -> {
+                    setRotate(-90f)
+                    postScale(-1f, 1f)
+                }
+
+                ExifInterface.ORIENTATION_ROTATE_270 -> setRotate(-90f)
+                else -> return bitmap
+            }
         }
-        // Release TFLite resources
-        classifier?.close()
-        super.onDestroy()
+        return try {
+            val oriented =
+                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+            bitmap.recycle()
+            oriented
+        } catch (e: OutOfMemoryError) {
+            e.printStackTrace()
+            bitmap
+        }
+    }
+
+    private fun getBitmapFromUri(uri: Uri): Bitmap? {
+        return try {
+            val parcelFileDescriptor = contentResolver.openFileDescriptor(uri, "r")
+            if (parcelFileDescriptor != null) {
+                val fileDescriptor = parcelFileDescriptor.fileDescriptor
+                val image = BitmapFactory.decodeFileDescriptor(fileDescriptor)
+                parcelFileDescriptor.close()
+                image
+            } else {
+                null
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    private fun openGallery() {
+        val pickIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        openGalleryLauncher.launch(pickIntent)
     }
 
     /** Declare and bind preview and analysis use cases */
@@ -258,12 +369,13 @@ class CameraActivity : AppCompatActivity() {
                 val cameraProvider = cameraProviderFuture.get()
 
                 // Set up the view finder use case to display camera preview
-                val preview = Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                //con esto se puede cambiar la relación de aspecto.
+                val preview = Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9)
                     .setTargetRotation(activityCameraBinding.viewFinder.display.rotation).build()
 
                 // Set up the image analysis use case which will process frames in real time
                 val imageAnalysis =
-                    ImageAnalysis.Builder().setTargetAspectRatio(AspectRatio.RATIO_4_3)
+                    ImageAnalysis.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9)
                         .setTargetRotation(activityCameraBinding.viewFinder.display.rotation)
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888).build()

@@ -18,4 +18,5 @@
     <string name="app_name">Image Classification</string>
     <string name="capture_button_alt">Capture</string>
     <string name="unknown">UNKNOWN</string>
+    <string name="imagen_estudiada">Imagen estudiada</string>
 </resources>
