@@ -70,7 +70,7 @@ class CameraActivity : AppCompatActivity() {
 
     private val executor = Executors.newSingleThreadExecutor()
     private val permissions =
-        listOf(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE)
+        listOf(Manifest.permission.CAMERA, Manifest.permission.READ_MEDIA_IMAGES)
     private val permissionsRequestCode = Random.nextInt(0, 10000)
 
     private var lensFacing: Int = CameraSelector.LENS_FACING_BACK
@@ -270,7 +270,9 @@ class CameraActivity : AppCompatActivity() {
 
                     contentResolver.openOutputStream(uri).use { outputStream ->
                         // Use the outputStream to save your bitmap
-                        mBitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
+                        if (outputStream != null) {
+                            mBitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
+                        }
                     }
 
                     runOnUiThread {
@@ -369,7 +371,8 @@ class CameraActivity : AppCompatActivity() {
                 val cameraProvider = cameraProviderFuture.get()
 
                 // Set up the view finder use case to display camera preview
-                //con esto se puede cambiar la relación de aspecto.
+                // Con esto se puede cambiar la relación de aspecto.
+                // Deprecado en versiones mas nuevas de android, en una app que hice, esta hecho de otra forma.
                 val preview = Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9)
                     .setTargetRotation(activityCameraBinding.viewFinder.display.rotation).build()
 
