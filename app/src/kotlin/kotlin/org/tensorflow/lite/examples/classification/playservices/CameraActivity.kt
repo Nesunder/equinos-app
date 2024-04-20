@@ -37,6 +37,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
@@ -69,8 +70,13 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var bitmapBuffer: Bitmap
 
     private val executor = Executors.newSingleThreadExecutor()
-    private val permissions =
+
+    private val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         listOf(Manifest.permission.CAMERA, Manifest.permission.READ_MEDIA_IMAGES)
+    } else {
+        listOf(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE)
+    }
+
     private val permissionsRequestCode = Random.nextInt(0, 10000)
 
     private var lensFacing: Int = CameraSelector.LENS_FACING_BACK
