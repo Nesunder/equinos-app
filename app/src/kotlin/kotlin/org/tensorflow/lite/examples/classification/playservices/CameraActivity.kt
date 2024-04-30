@@ -35,6 +35,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -88,18 +89,24 @@ class CameraActivity : AppCompatActivity() {
 
     // Initialize TFLite once. Must be called before creating the classifier
     private val initializeTask: Task<Void> by lazy {
-        TfLite.initialize(
-            this, TfLiteInitializationOptions.builder().setEnableGpuDelegateSupport(true).build()
-        ).continueWithTask { task ->
-            if (task.isSuccessful) {
-                useGpu = true
-                return@continueWithTask Tasks.forResult(null)
-            } else {
-                // Fallback to initialize interpreter without GPU
-                return@continueWithTask TfLite.initialize(this)
+        if (!isTFLiteInitialized) {
+            TfLite.initialize(
+                this,
+                TfLiteInitializationOptions.builder().setEnableGpuDelegateSupport(true).build()
+            ).continueWithTask { task ->
+                if (task.isSuccessful) {
+                    useGpu = true
+                    isTFLiteInitialized = true
+                    return@continueWithTask Tasks.forResult(null)
+                } else {
+                    // Fallback to initialize interpreter without GPU
+                    return@continueWithTask TfLite.initialize(this)
+                }
+            }.addOnFailureListener {
+                Log.e(TAG, "TFLite in Play Services failed to initialize.", it)
             }
-        }.addOnFailureListener {
-            Log.e(TAG, "TFLite in Play Services failed to initialize.", it)
+        } else {
+            Tasks.forResult(null)
         }
     }
     private var classifier: ImageClassificationHelper? = null
@@ -163,6 +170,10 @@ class CameraActivity : AppCompatActivity() {
         initializeTask.addOnSuccessListener {
             Log.d(TAG, "TFLite in Play Services initialized successfully.")
             classifier = ImageClassificationHelper(this, MAX_REPORT, useGpu)
+        }
+
+        onBackPressedDispatcher.addCallback {
+            finish()
         }
 
         /* Cosas a agregar:
@@ -497,5 +508,6 @@ class CameraActivity : AppCompatActivity() {
     companion object {
         private val TAG = CameraActivity::class.java.simpleName
         private const val MAX_REPORT = 3
+        var isTFLiteInitialized = false
     }
 }
