@@ -2,7 +2,7 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="android:immersive">true</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowTranslucentStatus">true</item>
@@ -26,28 +26,12 @@
         <item name="cornerSize">10%</item>
     </style>
 
-    <style name="CornerCut">
-        <item name="cornerSize">15dp</item>
-        <item name="cornerFamily">cut</item>
+    <style name="Theme.MyApplication.RoundedAlertDialog" parent="Theme.MaterialComponents">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.RoundedDialog</item>
     </style>
-
-    <style name="DiamondCut">
-        <item name="cornerSize">75dp</item>
-        <item name="cornerFamily">cut</item>
-    </style>
-
-    <style name="SpecificCornerCut">
-        <item name="cornerSizeTopRight">75dp</item>
-        <item name="cornerFamilyTopRight">cut</item>
-        <item name="cornerSizeBottomLeft">75dp</item>
-        <item name="cornerFamilyBottomLeft">cut</item>
-    </style>
-
-    <style name="SpecificCornerRounded">
-        <item name="cornerSizeTopRight">75dp</item>
-        <item name="cornerFamilyTopRight">rounded</item>
-        <item name="cornerSizeBottomLeft">75dp</item>
-        <item name="cornerFamilyBottomLeft">rounded</item>
+    <style name="ShapeAppearanceOverlay.RoundedDialog" parent="Theme.MaterialComponents">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
     </style>
 
 </resources>

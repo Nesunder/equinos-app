@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".HomeActivity">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".home.HomeFragment">
 
     <View
         android:layout_width="match_parent"
@@ -30,10 +29,9 @@
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@id/presentation_image"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.5" />
+        android:layout_margin="40dp"/>
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/presentation_image"
@@ -41,11 +39,10 @@
         android:layout_height="250dp"
         android:contentDescription="@string/imagen_de_un_caballo"
         android:src="@drawable/clases_de_caballos_20603_600"
-        app:layout_constraintBottom_toTopOf="@id/nav_view"
+        app:layout_constraintBottom_toTopOf="@id/cardViewLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.25"
         app:shapeAppearanceOverlay="@style/RoundedSquare" />
 
     <LinearLayout
@@ -83,7 +80,7 @@
                         android:id="@+id/ivFavorites"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:contentDescription="Favorites"
+                        android:contentDescription="@string/favorites"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
@@ -96,7 +93,7 @@
                     android:id="@+id/tvFavorites"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Favoritos"
+                    android:text="@string/favorites"
                     android:textAlignment="center"
                     android:textStyle="bold" />
 
@@ -132,7 +129,8 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:srcCompat="@drawable/message" />
+                        app:srcCompat="@drawable/message"
+                        android:contentDescription="@string/mensajes" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -140,7 +138,7 @@
                     android:id="@+id/tvMessages"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Mensajes"
+                    android:text="@string/mensajes"
                     android:textAlignment="center"
                     android:textStyle="bold" />
 
@@ -176,7 +174,8 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        app:srcCompat="@drawable/social" />
+                        app:srcCompat="@drawable/social"
+                        android:contentDescription="@string/repositorio_imagenes" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -184,7 +183,7 @@
                     android:id="@+id/tvRepository"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Repositorio \n de imágenes"
+                    android:text="@string/repositorio_imagenes"
                     android:textAlignment="center"
                     android:textStyle="bold" />
 
@@ -194,49 +193,5 @@
 
 
     </LinearLayout>
-
-    <com.google.android.material.switchmaterial.SwitchMaterial
-        android:id="@+id/switchTheme"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/cambiar_tema"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toTopOf="@id/nav_view"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardViewLayout" />
-
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/nav_view"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="0dp"
-        android:layout_marginEnd="0dp"
-        android:background="?android:attr/windowBackground"
-        app:labelVisibilityMode="labeled"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:menu="@menu/bottom_nav_menu">
-
-    </com.google.android.material.bottomnavigation.BottomNavigationView>
-
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/cameraButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:backgroundTint="@color/colorAccent"
-        android:contentDescription="@string/abrir_camara"
-        android:src="@drawable/baseline_camera_alt_24_white"
-        android:tint="@color/white"
-        app:elevation="9dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.97"
-        app:maxImageSize="32dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

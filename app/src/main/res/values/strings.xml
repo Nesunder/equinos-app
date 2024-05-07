@@ -16,4 +16,13 @@
     <string name="settings_title">Configuración</string>
     <string name="abrir_camara">Abrir cámara</string>
     <string name="cambiar_tema">Cambiar \ntema </string>
+    <string name="imagen_seleccionada">Imagen seleccionada de la galería</string>
+    <string name="boton_compartir">Botón de compartir</string>
+    <string name="boton_eliminar">Botón eliminar</string>
+    <string name="favorites">Favorites</string>
+    <string name="settings_fragment">Settings fragment</string>
+    <string name="profile_fragment">Profile fragment</string>
+    <string name="mensajes">Mensajes</string>
+    <string name="repositorio_imagenes">Repositorio \n de imágenes</string>
+    <string name="imagen_clasificada">Imagen clasificada</string>
 </resources>

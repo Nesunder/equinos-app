@@ -176,21 +176,8 @@ class CameraActivity : AppCompatActivity() {
             finish()
         }
 
-        /* Cosas a agregar:
-                * Guardar la foto
-                * La interfaz inicial no debería ser la cámara, sino que sería una opción. También sería una opción subir una foto y clasificarla,
-                  pudiendo guardarla localmente y en el repo.
-                * También debería haber una opción desde la interfaz inicial de ver todas las fotos guardadas localmente.
-                * Botón para redirigir a la página del repo
-                * Calcular en el momento de sacar la foto para comparar el resultado
-                * Cargar foto y que la evalúe.
-                * Subir foto al repositorio como un usuario
-                * Login y autentificación
-                * cálculo en server?
-         */
-
         activityCameraBinding.galleryButton?.setOnClickListener {
-            //ver el tema de permisos mejor
+            pauseAnalysis = true
             openGallery()
         }
 
@@ -238,6 +225,11 @@ class CameraActivity : AppCompatActivity() {
         // Release TFLite resources
         classifier?.close()
         super.onDestroy()
+    }
+
+    private fun openGallery() {
+        val pickIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        openGalleryLauncher.launch(pickIntent)
     }
 
     /**
@@ -370,11 +362,6 @@ class CameraActivity : AppCompatActivity() {
             e.printStackTrace()
             null
         }
-    }
-
-    private fun openGallery() {
-        val pickIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        openGalleryLauncher.launch(pickIntent)
     }
 
     /** Declare and bind preview and analysis use cases */
