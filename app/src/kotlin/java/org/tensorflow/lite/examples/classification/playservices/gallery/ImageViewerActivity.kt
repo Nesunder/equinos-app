@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ShareCompat.IntentBuilder
@@ -42,51 +43,64 @@ class ImageViewerActivity : AppCompatActivity() {
         }
 
         imageViewerBinding.deleteImage.setOnClickListener {
-            val alertDialogBuilder = MaterialAlertDialogBuilder(this@ImageViewerActivity)
-            alertDialogBuilder.setMessage("Está seguro que desa eliminar esta imagen?")
-            alertDialogBuilder.setPositiveButton(
-                "Si"
-            ) { _, _ ->
-                val projection = arrayOf(MediaStore.Images.Media._ID)
-                val selection = MediaStore.Images.Media.DATA + " = ?"
-                val selectionArgs = arrayOf(File(finalPath.toString()).absolutePath)
-                val queryUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                val contentResolver = contentResolver
-                val cursor =
-                    contentResolver.query(queryUri, projection, selection, selectionArgs, null)
-                if (cursor!!.moveToFirst()) {
-                    val id =
-                        cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
-                    val deleteUri =
-                        ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
-                    try {
-                        contentResolver.delete(deleteUri, null, null)
-                        val delete1 = File(finalPath.toString()).delete()
-                        Log.e("TAG", delete1.toString() + "")
-                        Toast.makeText(
-                            this@ImageViewerActivity,
-                            "Imagen eliminada correctamente",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        finish()
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        Toast.makeText(
-                            this@ImageViewerActivity,
-                            "Error Deleting Video",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                } else {
-                    Toast.makeText(this@ImageViewerActivity, "No se encontró el archivo", Toast.LENGTH_SHORT)
-                        .show()
-                }
-                cursor.close()
-            }
-            alertDialogBuilder.setNegativeButton(
-                "No"
-            ) { dialog, _ -> dialog.dismiss() }
-            alertDialogBuilder.show()
+            finalPath?.let { path -> deleteImage(path) }
         }
+
+        onBackPressedDispatcher.addCallback {
+            finish()
+        }
+
+    }
+
+    private fun deleteImage(finalPath: String) {
+        val alertDialogBuilder = MaterialAlertDialogBuilder(this@ImageViewerActivity)
+        alertDialogBuilder.setMessage("Está seguro que desa eliminar esta imagen?")
+        alertDialogBuilder.setPositiveButton(
+            "Si"
+        ) { _, _ ->
+            val projection = arrayOf(MediaStore.Images.Media._ID)
+            val selection = MediaStore.Images.Media.DATA + " = ?"
+            val selectionArgs = arrayOf(File(finalPath).absolutePath)
+            val queryUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            val contentResolver = contentResolver
+            val cursor =
+                contentResolver.query(queryUri, projection, selection, selectionArgs, null)
+            if (cursor!!.moveToFirst()) {
+                val id =
+                    cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
+                val deleteUri =
+                    ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+                try {
+                    contentResolver.delete(deleteUri, null, null)
+                    val delete1 = File(finalPath).delete()
+                    Log.e("TAG", delete1.toString() + "")
+                    Toast.makeText(
+                        this@ImageViewerActivity,
+                        "Imagen eliminada correctamente",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    finish()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Toast.makeText(
+                        this@ImageViewerActivity,
+                        "Error Deleting Video",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            } else {
+                Toast.makeText(
+                    this@ImageViewerActivity,
+                    "No se encontró el archivo",
+                    Toast.LENGTH_SHORT
+                )
+                    .show()
+            }
+            cursor.close()
+        }
+        alertDialogBuilder.setNegativeButton(
+            "No"
+        ) { dialog, _ -> dialog.dismiss() }
+        alertDialogBuilder.show()
     }
 }

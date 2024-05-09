@@ -12,7 +12,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import org.tensorflow.lite.examples.classification.playservices.databinding.MainActivityBinding
@@ -22,10 +22,13 @@ import kotlin.random.Random
 class MainActivity : AppCompatActivity() {
 
     private lateinit var mainActivityBinding: MainActivityBinding
-    private val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        listOf(Manifest.permission.CAMERA, Manifest.permission.READ_MEDIA_IMAGES)
-    } else {
-        listOf(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE)
+
+    private val permissions by lazy {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            listOf(Manifest.permission.CAMERA, Manifest.permission.READ_MEDIA_IMAGES)
+        } else {
+            listOf(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
     }
 
     private val permissionsRequestCode = Random.nextInt(0, 10000)
@@ -42,23 +45,17 @@ class MainActivity : AppCompatActivity() {
         }
 
         val navView: BottomNavigationView = mainActivityBinding.navView
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_main) as NavHostFragment
+        navView.setupWithNavController(navHostFragment.navController)
 
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        navView.setupWithNavController(navController)
-
+        val openCameraIntent = Intent(applicationContext, CameraActivity::class.java)
         mainActivityBinding.cameraButton.setOnClickListener {
-            val openCamera = Intent(
-                applicationContext,
-                CameraActivity::class.java
-            )
-            startActivity(openCamera)
+            startActivity(openCameraIntent)
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        // Request permissions each time the app resumes, since they can be revoked at any time
+    override fun onStart() {
+        super.onStart()
         if (!hasPermissions(this)) {
             ActivityCompat.requestPermissions(
                 this, permissions.toTypedArray(), permissionsRequestCode

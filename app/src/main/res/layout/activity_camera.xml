@@ -26,7 +26,8 @@
             android:layout_height="match_parent"
             android:scaleType="fitCenter"
             android:visibility="gone"
-            android:contentDescription="@string/imagen_estudiada" />
+            android:contentDescription="@string/imagen_estudiada"
+            android:background="@color/black"/>
 
         <TextView
             android:id="@+id/text_prediction"

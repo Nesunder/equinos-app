@@ -1,19 +1,3 @@
-/*
- * Copyright 2022 The TensorFlow Authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.tensorflow.lite.examples.classification.playservices
 
 import android.Manifest
@@ -65,16 +49,27 @@ import kotlin.random.Random
 /** Activity that displays the camera and performs object detection on the incoming frames */
 class CameraActivity : AppCompatActivity() {
 
+    private lateinit var preview: Preview
+    private lateinit var cameraProvider: ProcessCameraProvider
     private lateinit var activityCameraBinding: ActivityCameraBinding
 
     private lateinit var bitmapBuffer: Bitmap
 
     private val executor = Executors.newSingleThreadExecutor()
 
-    private val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        listOf(Manifest.permission.CAMERA, Manifest.permission.READ_MEDIA_IMAGES)
-    } else {
-        listOf(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE)
+    private val permissions by lazy {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            listOf(Manifest.permission.CAMERA, Manifest.permission.READ_MEDIA_IMAGES)
+        } else {
+            listOf(Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+    }
+
+    private val pickIntent by lazy {
+        Intent(
+            Intent.ACTION_PICK,
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        )
     }
 
     private val permissionsRequestCode = Random.nextInt(0, 10000)
@@ -100,6 +95,7 @@ class CameraActivity : AppCompatActivity() {
                     return@continueWithTask Tasks.forResult(null)
                 } else {
                     // Fallback to initialize interpreter without GPU
+                    isTFLiteInitialized = true
                     return@continueWithTask TfLite.initialize(this)
                 }
             }.addOnFailureListener {
@@ -119,7 +115,6 @@ class CameraActivity : AppCompatActivity() {
                 // reemplazar la imagen, subirla al repo
                 val uri = result.data?.data!!
                 val imageBitmap: Bitmap? = getBitmapFromUri(uri)
-
                 val inputStream = contentResolver.openInputStream(uri)
 
                 //Obtengo la orientación de la imagen para dejarla derecha, así solo funciona desde api 24
@@ -143,23 +138,32 @@ class CameraActivity : AppCompatActivity() {
                 }
 
                 activityCameraBinding.imagePredicted.setImageBitmap(rotatedBitmap)
-
                 val recognitions = classifier?.classify(
                     rotatedBitmap!!, activityCameraBinding.imagePredicted.rotation.toInt()
                 )
 
                 reportRecognition(recognitions)
+                setPredictedView()
+                bindCameraUseCases()
 
-                activityCameraBinding.imagePredicted.visibility = View.VISIBLE
-                activityCameraBinding.viewFinder.visibility = View.GONE
-                activityCameraBinding.saveButton?.visibility = View.VISIBLE
             } else {
                 pauseAnalysis = false
-                activityCameraBinding.imagePredicted.visibility = View.GONE
-                activityCameraBinding.viewFinder.visibility = View.VISIBLE
-                activityCameraBinding.saveButton?.visibility = View.GONE
+                setAnalysisView()
+                bindCameraUseCases()
             }
         }
+
+    private fun setPredictedView() {
+        activityCameraBinding.imagePredicted.visibility = View.VISIBLE
+        activityCameraBinding.viewFinder.visibility = View.GONE
+        activityCameraBinding.saveButton?.visibility = View.VISIBLE
+    }
+
+    private fun setAnalysisView() {
+        activityCameraBinding.imagePredicted.visibility = View.GONE
+        activityCameraBinding.viewFinder.visibility = View.VISIBLE
+        activityCameraBinding.saveButton?.visibility = View.GONE
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -173,6 +177,7 @@ class CameraActivity : AppCompatActivity() {
         }
 
         onBackPressedDispatcher.addCallback {
+            cameraProvider.unbind(preview)
             finish()
         }
 
@@ -187,9 +192,7 @@ class CameraActivity : AppCompatActivity() {
             if (pauseAnalysis) {
                 // If image analysis is in paused state, resume it
                 pauseAnalysis = false
-                activityCameraBinding.imagePredicted.visibility = View.GONE
-                activityCameraBinding.viewFinder.visibility = View.VISIBLE
-                activityCameraBinding.saveButton?.visibility = View.GONE
+                setAnalysisView()
             } else {
                 // Otherwise, pause image analysis and freeze image
                 pauseAnalysis = true
@@ -228,7 +231,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun openGallery() {
-        val pickIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        cameraProvider.unbind(preview)
         openGalleryLauncher.launch(pickIntent)
     }
 
@@ -371,12 +374,12 @@ class CameraActivity : AppCompatActivity() {
         cameraProviderFuture.addListener(
             {
                 // Camera provider is now guaranteed to be available
-                val cameraProvider = cameraProviderFuture.get()
+                cameraProvider = cameraProviderFuture.get()
 
                 // Set up the view finder use case to display camera preview
                 // Con esto se puede cambiar la relación de aspecto.
                 // Deprecado en versiones mas nuevas de android, en una app que hice, esta hecho de otra forma.
-                val preview = Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                preview = Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9)
                     .setTargetRotation(activityCameraBinding.viewFinder.display.rotation).build()
 
                 // Set up the image analysis use case which will process frames in real time

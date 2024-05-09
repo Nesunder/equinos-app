@@ -14,6 +14,8 @@ import java.io.File
 class GalleryFragment : Fragment() {
     private var _binding: FragmentGalleryBinding? = null
     private var imageList = ArrayList<Image>()
+    private val imageViewerIntent by lazy { Intent(activity, ImageViewerActivity::class.java) }
+
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -69,10 +71,7 @@ class GalleryFragment : Fragment() {
         binding.recyclerView.setAdapter(adapter)
         adapter?.setOnItemClickListener { _: View?, path: String? ->
             startActivity(
-                Intent(
-                    activity,
-                    ImageViewerActivity::class.java
-                ).putExtra("image", path)
+                imageViewerIntent.putExtra("image", path)
             )
         }
     }
