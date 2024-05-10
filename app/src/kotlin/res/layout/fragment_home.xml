@@ -102,6 +102,7 @@
         </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView
+            android:id="@+id/classifyCard"
             android:layout_width="100dp"
             android:layout_height="120dp"
             android:layout_margin="10dp"
@@ -113,32 +114,31 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical">
 
-                <androidx.constraintlayout.widget.ConstraintLayout
+                <com.google.android.material.button.MaterialButton
                     android:layout_width="60dp"
                     android:layout_height="60dp"
                     android:layout_gravity="center"
                     android:layout_marginTop="16dp"
-                    android:layout_marginBottom="12dp"
-                    android:background="@drawable/background_oval_2">
-
-                    <ImageView
-                        android:id="@+id/ivMessages"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:srcCompat="@drawable/message"
-                        android:contentDescription="@string/mensajes" />
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                    android:layout_marginBottom="4dp"
+                    android:gravity="center"
+                    android:background="@drawable/background_oval_2"
+                    app:backgroundTint="@color/nice_pink"
+                    app:icon="@drawable/outline_add_photo_alternate_38"
+                    app:iconTint="@color/purple_700"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Circle"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.8"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/cardViewLayout"/>
 
                 <TextView
                     android:id="@+id/tvMessages"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/mensajes"
+                    android:text="@string/clasificar_imagen"
                     android:textAlignment="center"
                     android:textStyle="bold" />
 
@@ -185,6 +185,8 @@
                     android:layout_height="wrap_content"
                     android:text="@string/repositorio_imagenes"
                     android:textAlignment="center"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginStart="8dp"
                     android:textStyle="bold" />
 
             </LinearLayout>
@@ -193,5 +195,75 @@
 
 
     </LinearLayout>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="4dp"
+        android:background="@drawable/background_oval_2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardViewLayout">
+
+        <ImageView
+            android:id="@+id/ivPlaceholder"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/clasificar_imagen"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/message" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:gravity="center"
+        android:background="@drawable/background_oval_2"
+        app:backgroundTint="@color/nice_pink"
+        app:icon="@drawable/favorites"
+        app:iconTint="@color/purple_700"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        android:paddingTop="8dp"
+        app:iconSize="32dp"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Circle"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardViewLayout"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button2"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:padding="0dp"
+        android:gravity="center"
+        android:background="@drawable/background_oval_2"
+        app:backgroundTint="@color/nice_pink"
+        app:icon="@drawable/outline_image_search_38"
+        app:iconTint="@color/purple_700"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Circle"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.8"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardViewLayout"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
