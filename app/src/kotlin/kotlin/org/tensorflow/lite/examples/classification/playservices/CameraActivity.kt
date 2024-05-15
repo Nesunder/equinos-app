@@ -2,17 +2,11 @@ package org.tensorflow.lite.examples.classification.playservices
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Matrix
-import androidx.exifinterface.media.ExifInterface
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -32,19 +26,11 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import com.google.android.gms.tasks.Task
-import com.google.android.gms.tasks.Tasks
-import com.google.android.gms.tflite.client.TfLiteInitializationOptions
-import com.google.android.gms.tflite.java.TfLite
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityCameraBinding
-import java.io.IOException
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
-
 
 /** Activity that displays the camera and performs object detection on the incoming frames */
 class CameraActivity : AppCompatActivity() {
@@ -82,30 +68,11 @@ class CameraActivity : AppCompatActivity() {
     private var imageRotationDegrees: Int = 0
     private var useGpu = false
 
-    // Initialize TFLite once. Must be called before creating the classifier
-    private val initializeTask: Task<Void> by lazy {
-        if (!isTFLiteInitialized) {
-            TfLite.initialize(
-                this,
-                TfLiteInitializationOptions.builder().setEnableGpuDelegateSupport(true).build()
-            ).continueWithTask { task ->
-                if (task.isSuccessful) {
-                    useGpu = true
-                    isTFLiteInitialized = true
-                    return@continueWithTask Tasks.forResult(null)
-                } else {
-                    // Fallback to initialize interpreter without GPU
-                    isTFLiteInitialized = true
-                    return@continueWithTask TfLite.initialize(this)
-                }
-            }.addOnFailureListener {
-                Log.e(TAG, "TFLite in Play Services failed to initialize.", it)
-            }
-        } else {
-            Tasks.forResult(null)
-        }
-    }
     private var classifier: ImageClassificationHelper? = null
+
+    private val imageHelper: ImageHelper by lazy {
+        ImageHelper()
+    }
 
     private val openGalleryLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -114,32 +81,11 @@ class CameraActivity : AppCompatActivity() {
                 //Acá se podría abrir una actividad nueva que tenga una interfaz más dedidcada a la clasificación de una imagen cargada, con la posibilidad de guardar,
                 // reemplazar la imagen, subirla al repo
                 val uri = result.data?.data!!
-                val imageBitmap: Bitmap? = getBitmapFromUri(uri)
-                val inputStream = contentResolver.openInputStream(uri)
+                val imageBitmap: Bitmap? = imageHelper.getBitmap(uri, contentResolver)
 
-                //Obtengo la orientación de la imagen para dejarla derecha, así solo funciona desde api 24
-                val exifInterface = inputStream?.let {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        ExifInterface(it)
-                    } else {
-                        TODO("VERSION.SDK_INT < N")
-                    }
-                }
-
-                val orientation = exifInterface?.getAttributeInt(
-                    ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL
-                )
-
-                //Se aplican cambios en la imagen
-                val rotatedBitmap = imageBitmap?.let {
-                    configBitmap(
-                        it, orientation ?: ExifInterface.ORIENTATION_NORMAL
-                    )
-                }
-
-                activityCameraBinding.imagePredicted.setImageBitmap(rotatedBitmap)
+                activityCameraBinding.imagePredicted.setImageBitmap(imageBitmap)
                 val recognitions = classifier?.classify(
-                    rotatedBitmap!!, activityCameraBinding.imagePredicted.rotation.toInt()
+                    imageBitmap!!, activityCameraBinding.imagePredicted.rotation.toInt()
                 )
 
                 reportRecognition(recognitions)
@@ -171,7 +117,7 @@ class CameraActivity : AppCompatActivity() {
         setContentView(activityCameraBinding.root)
 
         // Initialize TFLite asynchronously
-        initializeTask.addOnSuccessListener {
+        TFLiteInitializer.getInstance().initializeTask(this).addOnSuccessListener {
             Log.d(TAG, "TFLite in Play Services initialized successfully.")
             classifier = ImageClassificationHelper(this, MAX_REPORT, useGpu)
         }
@@ -214,7 +160,7 @@ class CameraActivity : AppCompatActivity() {
 
         activityCameraBinding.saveButton?.setOnClickListener {
             lifecycleScope.launch {
-                saveBitmapFile(getBitmapFromView(activityCameraBinding.flPreviewViewContainer!!))
+                saveClassifiedPhoto()
             }
         }
     }
@@ -235,135 +181,31 @@ class CameraActivity : AppCompatActivity() {
         openGalleryLauncher.launch(pickIntent)
     }
 
-    /**
-     * Create bitmap from view and returns it
-     */
-    private fun getBitmapFromView(view: View): Bitmap {
+    private fun saveClassifiedPhoto() {
+        lifecycleScope.launch {
 
-        //Define a bitmap with the same size as the view.
-        // CreateBitmap : Returns a mutable bitmap with the specified width and height
-        val returnedBitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
-        //Bind a canvas to it
-        val canvas = Canvas(returnedBitmap)
-        //Get the view's background
-        val bgDrawable = view.background
-        if (bgDrawable != null) {
-            //has background drawable, then draw it on the canvas
-            bgDrawable.draw(canvas)
-        } else {
-            //does not have background drawable, then draw black background on the canvas
-            canvas.drawColor(Color.BLACK)
-        }
-        // draw the view on the canvas
-        view.draw(canvas)
-        //return the bitmap
-        return returnedBitmap
-    }
+            val path = imageHelper.saveBitmapFile(
+                imageHelper.getBitmapFromView(
+                    activityCameraBinding.flPreviewViewContainer!!
+                ),
+                contentResolver
+            )
 
-    private suspend fun saveBitmapFile(mBitmap: Bitmap?): String {
-        var path = ""
-        withContext(Dispatchers.IO) {
-            if (mBitmap != null) {
-                try {
-                    val contentValues = ContentValues().apply {
-                        put(
-                            MediaStore.MediaColumns.DISPLAY_NAME,
-                            "EquinosApp_" + System.currentTimeMillis() / 1000
-                        )
-                        put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-                        put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/EquinosApp")
-                    }
-                    val uri = contentResolver.insert(
-                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues
-                    )
-
-                    path = uri?.path!!
-
-                    contentResolver.openOutputStream(uri).use { outputStream ->
-                        // Use the outputStream to save your bitmap
-                        if (outputStream != null) {
-                            mBitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
-                        }
-                    }
-
-                    runOnUiThread {
-                        //cancelProgressDialog()
-                        if (path.isNotEmpty()) {
-                            Toast.makeText(
-                                this@CameraActivity,
-                                "File saved successfully: $path",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            //shareFile(path)
-                        } else {
-                            Toast.makeText(
-                                this@CameraActivity,
-                                "Error while saving the file",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-                } catch (e: Exception) {
-                    path = ""
-                    e.printStackTrace()
-                }
-            }
-        }
-        return path
-    }
-
-    private fun configBitmap(bitmap: Bitmap, orientation: Int): Bitmap {
-        val matrix = Matrix().apply {
-            if (isFrontFacing) postScale(-1f, 1f)
-            when (orientation) {
-                ExifInterface.ORIENTATION_NORMAL -> return bitmap
-                ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> this.setScale(-1f, 1f)
-                ExifInterface.ORIENTATION_ROTATE_180 -> this.setRotate(180f)
-                ExifInterface.ORIENTATION_FLIP_VERTICAL -> {
-                    setRotate(180f)
-                    this.postScale(-1f, 1f)
-                }
-
-                ExifInterface.ORIENTATION_TRANSPOSE -> {
-                    setRotate(90f)
-                    postScale(-1f, 1f)
-                }
-
-                ExifInterface.ORIENTATION_ROTATE_90 -> setRotate(90f)
-                ExifInterface.ORIENTATION_TRANSVERSE -> {
-                    setRotate(-90f)
-                    postScale(-1f, 1f)
-                }
-
-                ExifInterface.ORIENTATION_ROTATE_270 -> setRotate(-90f)
-                else -> return bitmap
-            }
-        }
-        return try {
-            val oriented =
-                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-            bitmap.recycle()
-            oriented
-        } catch (e: OutOfMemoryError) {
-            e.printStackTrace()
-            bitmap
-        }
-    }
-
-    private fun getBitmapFromUri(uri: Uri): Bitmap? {
-        return try {
-            val parcelFileDescriptor = contentResolver.openFileDescriptor(uri, "r")
-            if (parcelFileDescriptor != null) {
-                val fileDescriptor = parcelFileDescriptor.fileDescriptor
-                val image = BitmapFactory.decodeFileDescriptor(fileDescriptor)
-                parcelFileDescriptor.close()
-                image
+            //cancelProgressDialog()
+            if (path.isNotEmpty()) {
+                Toast.makeText(
+                    this@CameraActivity,
+                    "Archivo guardado: $path",
+                    Toast.LENGTH_SHORT
+                ).show()
+                //shareFile(path)
             } else {
-                null
+                Toast.makeText(
+                    this@CameraActivity,
+                    "Error al guardar el archivo",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-        } catch (e: IOException) {
-            e.printStackTrace()
-            null
         }
     }
 
@@ -498,6 +340,5 @@ class CameraActivity : AppCompatActivity() {
     companion object {
         private val TAG = CameraActivity::class.java.simpleName
         private const val MAX_REPORT = 3
-        var isTFLiteInitialized = false
     }
 }
