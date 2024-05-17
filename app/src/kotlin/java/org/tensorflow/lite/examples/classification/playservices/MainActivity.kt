@@ -6,12 +6,15 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.WindowInsets
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.doOnAttach
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -38,14 +41,12 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
         mainActivityBinding = MainActivityBinding.inflate(layoutInflater)
         setContentView(mainActivityBinding.root)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            setWindowsInsets()
         }
-
         val navView: BottomNavigationView = mainActivityBinding.navView
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_main) as NavHostFragment
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_main) as NavHostFragment
         navView.setupWithNavController(navHostFragment.navController)
 
         val openCameraIntent = Intent(applicationContext, CameraActivity::class.java)
@@ -61,6 +62,28 @@ class MainActivity : AppCompatActivity() {
                 this, permissions.toTypedArray(), permissionsRequestCode
             )
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun setWindowsInsets() {
+        var hasGestureNavigation: Boolean
+        mainActivityBinding.root.doOnAttach { view ->
+            val insets = view.rootWindowInsets?.getInsets(WindowInsets.Type.systemGestures())
+            hasGestureNavigation = insets?.let {
+                it.left > 0 || it.right > 0
+            } ?: false
+
+            if (hasGestureNavigation) {
+                ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insetsBars ->
+                    val systemBars = insetsBars.getInsets(WindowInsetsCompat.Type.systemBars())
+                    v.setPadding(
+                        systemBars.left, systemBars.top, systemBars.right, systemBars.bottom
+                    )
+                    insetsBars
+                }
+            }
+        }
+
     }
 
     override fun onRequestPermissionsResult(

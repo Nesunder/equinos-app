@@ -7,11 +7,14 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.Button
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -82,6 +85,11 @@ class ImageClassificationActivity : AppCompatActivity() {
             uri?.let { setImage(it) }
         }
 
+        imageClassificationBinding.shareBtn.setOnClickListener {
+            showRepositoryFormDialog()
+        }
+
+
     }
 
     private fun setImage(uri: Uri) {
@@ -92,6 +100,21 @@ class ImageClassificationActivity : AppCompatActivity() {
             imageBitmap!!, imageClassificationBinding.imagePredicted.rotation.toInt()
         )
         reportRecognition(recognitions)
+    }
+
+    private fun showRepositoryFormDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.horse_data_form, null)
+        val builder = AlertDialog.Builder(this)
+            .setView(dialogView)
+        val alertDialog = builder.show()
+
+        val cancelButton: Button = dialogView.findViewById(R.id.buttonCancel)
+
+        cancelButton.setOnClickListener {
+            alertDialog.dismiss()
+        }
+
+
     }
 
     private fun reportRecognition(

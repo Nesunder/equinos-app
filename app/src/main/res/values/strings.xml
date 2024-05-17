@@ -26,4 +26,19 @@
     <string name="repositorio_imagenes">Repositorio de imágenes</string>
     <string name="imagen_clasificada">Imagen clasificada</string>
     <string name="clasificar_imagen">Clasificar imagen</string>
+    <string name="nombre">Nombre</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="confirmar">Confirmar</string>
+    <string name="ingrese_los_datos">Ingrese los datos del caballo</string>
+    <string name="observaciones">Observaciones</string>
+    <string name="sexo">Sexo</string>
+    <string name="edad">Edad</string>
+    <string name="entrenado">Entrenado</string>
+    <string name="dolor">Dolor</string>
+    <string name="salida_a_piquete">Salida a piquete</string>
+    <string name="estabulacion">Estabulación</string>
+    <string-array name="sexo_array">
+        <item>Masculino</item>
+        <item>Femenino</item>
+    </string-array>
 </resources>

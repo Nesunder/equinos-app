@@ -38,7 +38,7 @@
             android:layout_weight="1"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_baseline_share_24"
-            app:tint="@color/colorAccent"
+            app:tint="@color/colorPrimary"
             android:contentDescription="@string/boton_compartir" />
 
         <ImageButton
@@ -48,7 +48,7 @@
             android:layout_weight="1"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_baseline_delete_24"
-            app:tint="@color/colorAccent"
+            app:tint="@color/colorPrimary"
             android:contentDescription="@string/boton_eliminar" />
 
     </LinearLayout>
