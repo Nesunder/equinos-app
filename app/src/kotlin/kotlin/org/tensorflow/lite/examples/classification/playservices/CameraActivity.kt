@@ -28,6 +28,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityCameraBinding
+import org.tensorflow.lite.support.label.Category
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
@@ -84,11 +85,12 @@ class CameraActivity : AppCompatActivity() {
                 val imageBitmap: Bitmap? = imageHelper.getBitmap(uri, contentResolver)
 
                 activityCameraBinding.imagePredicted.setImageBitmap(imageBitmap)
-                val recognitions = classifier?.classify(
-                    imageBitmap!!, activityCameraBinding.imagePredicted.rotation.toInt()
+
+                val recognition = classifier?.classifyImageManualProcessing(
+                    imageBitmap!!
                 )
 
-                reportRecognition(recognitions)
+                reportRecognition(recognition)
                 setPredictedView()
                 bindCameraUseCases()
 
@@ -123,6 +125,7 @@ class CameraActivity : AppCompatActivity() {
         }
 
         onBackPressedDispatcher.addCallback {
+            classifier?.clearImageClassifier()
             cameraProvider.unbind(preview)
             finish()
         }
@@ -172,6 +175,7 @@ class CameraActivity : AppCompatActivity() {
             awaitTermination(1000, TimeUnit.MILLISECONDS)
         }
         // Release TFLite resources
+        classifier?.clearImageClassifier()
         classifier?.close()
         super.onDestroy()
     }
@@ -253,10 +257,10 @@ class CameraActivity : AppCompatActivity() {
                     // Copy out RGB bits to our shared buffer
                     image.use { bitmapBuffer.copyPixelsFromBuffer(image.planes[0].buffer) }
 
-                    // Perform the image classification for the current frame
-                    val recognitions = classifier?.classify(bitmapBuffer, imageRotationDegrees)
+                    val categories =
+                        classifier?.classifyImageManualProcessing(bitmapBuffer)
 
-                    reportRecognition(recognitions)
+                    reportRecognition(categories)
 
                     // Compute the FPS of the entire pipeline
                     val frameCount = 10
@@ -285,25 +289,38 @@ class CameraActivity : AppCompatActivity() {
         )
     }
 
-    /** Displays recognition results on screen. */
-    private fun reportRecognition(
-        recognitions: List<ImageClassificationHelper.Recognition>?,
+    private fun <T> reportItems(
+        items: List<T>?,
+        formatItem: (T) -> String
     ) = activityCameraBinding.viewFinder.post {
 
-        // Early exit: if recognition is null, or there are not enough recognition results.
-        if (recognitions == null || recognitions.size < MAX_REPORT) {
+        if (items == null || items.size < MAX_REPORT) {
             activityCameraBinding.textPrediction.visibility = View.GONE
             return@post
         }
 
         // Update the text and UI
         activityCameraBinding.textPrediction.text =
-            recognitions.subList(0, MAX_REPORT).joinToString(separator = "\n") {
-                "${"%.2f".format(it.confidence)} ${it.title}"
-            }
+            items.subList(0, MAX_REPORT).joinToString(separator = "\n", transform = formatItem)
 
         // Make sure all UI elements are visible
         activityCameraBinding.textPrediction.visibility = View.VISIBLE
+    }
+
+    private fun reportRecognition(
+        recognitions: List<ImageClassificationHelper.Recognition>?
+    ) {
+        reportItems(recognitions) { recognition ->
+            "${"%.2f".format(recognition.confidence)} ${recognition.title}"
+        }
+    }
+
+    private fun reportCategories(
+        categories: List<Category>?
+    ) {
+        reportItems(categories) { category ->
+            "${"%.2f".format(category.score)} ${category.label}"
+        }
     }
 
     override fun onResume() {

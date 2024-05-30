@@ -18,7 +18,6 @@ import java.io.IOException
 
 //no se si tiene mucho sentido el nombre pero bueno
 class ImageHelper {
-
     private val isFrontFacing = false
 
     fun getBitmap(uri: Uri, contentResolver: ContentResolver): Bitmap? {

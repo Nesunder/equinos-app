@@ -21,6 +21,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityImageClassificationBinding
+import org.tensorflow.lite.support.label.Category
 
 class ImageClassificationActivity : AppCompatActivity() {
 
@@ -92,14 +93,30 @@ class ImageClassificationActivity : AppCompatActivity() {
 
     }
 
+    override fun onDestroy() {
+        // Release TFLite resources
+        classifier?.clearImageClassifier()
+        classifier?.close()
+        super.onDestroy()
+    }
+
     private fun setImage(uri: Uri) {
         val imageBitmap: Bitmap? = imageHelper.getBitmap(uri, contentResolver)
         imageClassificationBinding.imagePredicted.setImageBitmap(imageBitmap)
 
-        val recognitions = classifier?.classify(
-            imageBitmap!!, imageClassificationBinding.imagePredicted.rotation.toInt()
+        // Método que funciona bien
+        val recognitions = classifier?.classifyImageManualProcessing(
+            imageBitmap!!
         )
         reportRecognition(recognitions)
+
+        // Para clasificar con el otro método
+        /*
+        val categories = classifier?.classifyWithMetadata(
+        imageBitmap!!, imageClassificationBinding.imagePredicted.rotation.toInt()
+        )
+        reportCategories(categories)
+        */
     }
 
     private fun showRepositoryFormDialog() {
@@ -113,25 +130,40 @@ class ImageClassificationActivity : AppCompatActivity() {
         cancelButton.setOnClickListener {
             alertDialog.dismiss()
         }
-
-
     }
 
-    private fun reportRecognition(
-        recognitions: List<ImageClassificationHelper.Recognition>?,
+    private fun <T> reportItems(
+        items: List<T>?,
+        formatItem: (T) -> String
     ) = imageClassificationBinding.viewFinder.post {
 
-        // Early exit: if recognition is null, or there are not enough recognition results.
-        if (recognitions == null || recognitions.size < MAX_REPORT) {
+        if (items == null || items.size < MAX_REPORT) {
             imageClassificationBinding.textPrediction.visibility = View.GONE
             return@post
         }
 
+        // Update the text and UI
         imageClassificationBinding.textPrediction.text =
-            recognitions.subList(0, MAX_REPORT).joinToString(separator = "\n") {
-                "${"%.2f".format(it.confidence)} ${it.title}"
-            }
+            items.subList(0, MAX_REPORT).joinToString(separator = "\n", transform = formatItem)
+
+        // Make sure all UI elements are visible
         imageClassificationBinding.textPrediction.visibility = View.VISIBLE
+    }
+
+    private fun reportRecognition(
+        recognitions: List<ImageClassificationHelper.Recognition>?
+    ) {
+        reportItems(recognitions) { recognition ->
+            "${"%.2f".format(recognition.confidence)} ${recognition.title}"
+        }
+    }
+
+    private fun reportCategories(
+        categories: List<Category>?
+    ) {
+        reportItems(categories) { category ->
+            "${"%.2f".format(category.score)} ${category.label}"
+        }
     }
 
     private fun saveClassifiedPhoto() {
