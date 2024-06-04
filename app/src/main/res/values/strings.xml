@@ -37,6 +37,8 @@
     <string name="dolor">Dolor</string>
     <string name="salida_a_piquete">Salida a piquete</string>
     <string name="estabulacion">Estabulación</string>
+    <string name="reclasificar">Reclasificar</string>
+    <string name="boton_guardar">boton guardar</string>
     <string-array name="sexo_array">
         <item>Masculino</item>
         <item>Femenino</item>

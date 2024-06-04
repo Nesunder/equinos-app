@@ -66,8 +66,8 @@
 
         <ImageButton
             android:id="@+id/galleryBtn"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:background="@drawable/outline_add_photo_alternate_38"
             android:backgroundTint="@color/white"
             android:contentDescription="@string/capture_button_alt"
@@ -78,8 +78,8 @@
 
         <ImageButton
             android:id="@+id/reloadBtn"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="62dp"
+            android:layout_height="62dp"
             android:background="@drawable/outline_cached_48"
             android:backgroundTint="@color/white"
             android:contentDescription="@string/capture_button_alt"
@@ -90,8 +90,8 @@
 
         <ImageButton
             android:id="@+id/shareBtn"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:background="@drawable/baseline_share_24"
             android:contentDescription="@string/capture_button_alt"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -101,15 +101,14 @@
 
         <ImageButton
             android:id="@+id/saveBtn"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:background="@drawable/baseline_save_24"
             android:contentDescription="@string/capture_button_alt"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/shareBtn"
             app:layout_constraintTop_toTopOf="parent" />
-
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

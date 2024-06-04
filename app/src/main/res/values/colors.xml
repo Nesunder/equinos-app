@@ -21,5 +21,6 @@
     <color name="teal_700">#FF018786</color>
     <color name="dark_blue">#32357a</color>
     <color name="nice_pink">#E3E0F1</color>
+    <color name="hover_color">#948ABF</color>
     <color name="greyText">#757575</color>
 </resources>

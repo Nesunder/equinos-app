@@ -1,13 +1,17 @@
 package org.tensorflow.lite.examples.classification.playservices
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
 import android.widget.Toast
@@ -22,6 +26,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityImageClassificationBinding
 import org.tensorflow.lite.support.label.Category
+
 
 class ImageClassificationActivity : AppCompatActivity() {
 
@@ -49,6 +54,7 @@ class ImageClassificationActivity : AppCompatActivity() {
             }
         }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -90,7 +96,44 @@ class ImageClassificationActivity : AppCompatActivity() {
             showRepositoryFormDialog()
         }
 
+        imageClassificationBinding.galleryBtn.setOnTouchListener { v, event ->
+            return@setOnTouchListener buttonAnimation(v, event)
+        }
+        imageClassificationBinding.saveBtn.setOnTouchListener { v, event ->
+            return@setOnTouchListener buttonAnimation(v, event)
+        }
+        imageClassificationBinding.reloadBtn.setOnTouchListener { v, event ->
+            return@setOnTouchListener buttonAnimation(v, event)
+        }
+        imageClassificationBinding.shareBtn.setOnTouchListener { v, event ->
+            return@setOnTouchListener buttonAnimation(v, event)
+        }
 
+    }
+
+
+    private fun buttonAnimation(v: View, event: MotionEvent): Boolean {
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                v.animate().scaleX(0.85f).scaleY(0.85f).setDuration(100).start()
+                return true
+            }
+
+            MotionEvent.ACTION_UP -> {
+                v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).withEndAction {
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        v.performClick() // Ensure accessibility services can handle the click
+                    }, 25) // Delay to ensure animation completes
+                }.start()
+                return true
+            }
+
+            MotionEvent.ACTION_CANCEL -> {
+                v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
+                return true
+            }
+        }
+        return false
     }
 
     override fun onDestroy() {
