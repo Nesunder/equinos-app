@@ -9,7 +9,7 @@
         android:id="@+id/view_finder"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:scaleType="fitCenter"/>
+        app:scaleType="fitCenter" />
 
     <FrameLayout
         android:id="@+id/fl_preview_view_container"
@@ -55,6 +55,19 @@
     <!-- Camera control buttons -->
 
     <ImageButton
+        android:id="@+id/gallery_button"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_marginEnd="@dimen/margin_xlarge"
+        android:layout_marginBottom="@dimen/margin_xlarge"
+        android:background="@drawable/baseline_add_photo_alternate_24"
+        android:contentDescription="@string/capture_button_alt"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="@id/camera_capture_button" />
+
+    <ImageButton
         android:id="@+id/camera_capture_button"
         android:layout_width="@dimen/round_button_large"
         android:layout_height="@dimen/round_button_large"
@@ -68,29 +81,30 @@
 
     <ImageButton
         android:id="@+id/save_button"
-        android:layout_width="@dimen/round_button_medium"
-        android:layout_height="@dimen/round_button_medium"
-        android:layout_marginStart="@dimen/margin_xlarge"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
         android:layout_marginBottom="@dimen/margin_xlarge"
         android:background="@drawable/baseline_save_24"
         android:contentDescription="@string/capture_button_alt"
         android:scaleType="fitCenter"
         android:visibility="gone"
+        app:layout_constraintHorizontal_bias="0.15"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="@id/camera_capture_button"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/camera_capture_button"/>
 
     <ImageButton
-        android:id="@+id/gallery_button"
-        android:layout_width="@dimen/round_button_medium"
-        android:layout_height="@dimen/round_button_medium"
-        android:layout_marginEnd="@dimen/margin_xlarge"
+        android:id="@+id/shareBtn"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
         android:layout_marginBottom="@dimen/margin_xlarge"
-        android:background="@drawable/baseline_add_photo_alternate_24"
+        android:background="@drawable/baseline_share_56"
+        app:layout_constraintHorizontal_bias="0.8"
         android:contentDescription="@string/capture_button_alt"
         android:scaleType="fitCenter"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="@id/camera_capture_button" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/camera_capture_button" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -39,6 +39,18 @@
     <string name="estabulacion">Estabulación</string>
     <string name="reclasificar">Reclasificar</string>
     <string name="boton_guardar">boton guardar</string>
+    <string name="correo_electronico">Correo electrónico</string>
+    <string name="contrasenia">Contraseña</string>
+    <string name="iniciar_sesion">Iniciar sesión</string>
+    <string name="equinos_appM">EQUINOS APP</string>
+    <string name="ingrese_su_contrasenia">Ingrese su contraseña</string>
+    <string name="ingrese_su_email">Ingrese su email</string>
+    <string name="recordarme">Recordarme</string>
+    <string name="olvide_mi_contrasenia">Olvidé mi contraseña</string>
+    <string name="login">Login</string>
+    <string name="o_ingrese_con">O ingrese con</string>
+    <string name="google_login">Google login</string>
+    <string name="crear_cuenta">Crear cuenta</string>
     <string-array name="sexo_array">
         <item>Masculino</item>
         <item>Femenino</item>

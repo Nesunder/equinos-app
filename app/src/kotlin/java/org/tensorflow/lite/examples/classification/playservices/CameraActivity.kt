@@ -11,11 +11,15 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.Button
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
@@ -26,6 +30,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityCameraBinding
 import org.tensorflow.lite.support.label.Category
@@ -105,12 +111,14 @@ class CameraActivity : AppCompatActivity() {
         activityCameraBinding.imagePredicted.visibility = View.VISIBLE
         activityCameraBinding.viewFinder.visibility = View.GONE
         activityCameraBinding.saveButton?.visibility = View.VISIBLE
+        activityCameraBinding.shareBtn?.visibility = View.VISIBLE
     }
 
     private fun setAnalysisView() {
         activityCameraBinding.imagePredicted.visibility = View.GONE
         activityCameraBinding.viewFinder.visibility = View.VISIBLE
         activityCameraBinding.saveButton?.visibility = View.GONE
+        activityCameraBinding.shareBtn?.visibility = View.GONE
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -155,6 +163,7 @@ class CameraActivity : AppCompatActivity() {
                 activityCameraBinding.imagePredicted.setImageBitmap(uprightImage)
                 activityCameraBinding.imagePredicted.visibility = View.VISIBLE
                 activityCameraBinding.saveButton?.visibility = View.VISIBLE
+                activityCameraBinding.shareBtn?.visibility = View.VISIBLE
             }
 
             // Re-enable camera controls
@@ -165,6 +174,10 @@ class CameraActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 saveClassifiedPhoto()
             }
+        }
+
+        activityCameraBinding.shareBtn?.setOnClickListener {
+            showRepositoryFormDialog()
         }
     }
 
@@ -211,6 +224,27 @@ class CameraActivity : AppCompatActivity() {
                 ).show()
             }
         }
+    }
+
+    private fun showRepositoryFormDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.horse_data_form, null)
+        val builder = AlertDialog.Builder(this)
+            .setView(dialogView)
+        val alertDialog = builder.show()
+
+        val cancelButton: Button = dialogView.findViewById(R.id.cancelButton)
+        val confirmButton: Button = dialogView.findViewById(R.id.confirmButton)
+
+        cancelButton.setOnClickListener {
+            alertDialog.dismiss()
+        }
+
+        confirmButton.setOnClickListener {
+            val name = dialogView.findViewById<TextInputEditText>(R.id.nameField).text.toString()
+            Log.d(TAG, "Nombre: $name")
+
+        }
+
     }
 
     /** Declare and bind preview and analysis use cases */

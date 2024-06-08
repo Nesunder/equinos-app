@@ -10,7 +10,7 @@
     <color name="colorAccentAlt">#673AB7</color>
     <color name="colorAccentOld">#5D34A8</color>
 
-    <!-- Tema alternativo, con color azul" -->
+    <!-- Tema primario, con color azul" -->
     <color name="colorPrimary">#227AC1</color>
     <color name="colorAccent">#1B418C</color>
     <color name="colorAccent2old">#273859</color>
@@ -23,4 +23,6 @@
     <color name="nice_pink">#E3E0F1</color>
     <color name="hover_color">#948ABF</color>
     <color name="greyText">#757575</color>
+    <color name="button_background">#FFFFFF</color> <!-- White for light theme -->
+
 </resources>

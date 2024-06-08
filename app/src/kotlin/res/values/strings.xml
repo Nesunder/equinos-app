@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Image Classification</string>
+    <string name="app_name">Equinos App</string>
     <string name="capture_button_alt">Capture</string>
     <string name="unknown">UNKNOWN</string>
     <string name="imagen_estudiada">Imagen estudiada</string>
     <string name="open_camera">Abrir cámara</string>
     <string name="gallery">galería</string>
     <string name="repository">Repositorio</string>
-    <string name="equinos_app">Equinos App</string>
     <string name="imagen_de_un_caballo">Imagen de un caballo</string>
     <string name="title_home">Home</string>
     <string name="title_galeria">Galería</string>

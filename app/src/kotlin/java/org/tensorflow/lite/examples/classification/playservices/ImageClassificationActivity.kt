@@ -168,7 +168,7 @@ class ImageClassificationActivity : AppCompatActivity() {
             .setView(dialogView)
         val alertDialog = builder.show()
 
-        val cancelButton: Button = dialogView.findViewById(R.id.buttonCancel)
+        val cancelButton: Button = dialogView.findViewById(R.id.cancelButton)
 
         cancelButton.setOnClickListener {
             alertDialog.dismiss()
