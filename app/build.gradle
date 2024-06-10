@@ -83,6 +83,8 @@ android {
 }
 
 dependencies {
+    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
 
     // App compat and UI things

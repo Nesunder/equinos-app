@@ -5,7 +5,9 @@ import android.os.Build
 import android.os.Bundle
 import android.text.method.HideReturnsTransformationMethod
 import android.text.method.PasswordTransformationMethod
+import android.util.Log
 import android.view.WindowInsets
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
@@ -13,6 +15,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnAttach
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.FormBody
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import org.json.JSONObject
 import org.tensorflow.lite.examples.classification.playservices.MainActivity
 import org.tensorflow.lite.examples.classification.playservices.R
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityLoginBinding
@@ -34,11 +47,13 @@ class LoginActivity : AppCompatActivity() {
 
         val mainActivityIntent = Intent(applicationContext, MainActivity::class.java)
         loginBinding.loginButton.setOnClickListener {
-            val validationState = validateInputs()
-            if (validationState == ValidationState.VALID) {
-                startActivity(mainActivityIntent)
-            } else {
-                showValidationDialog(validationState)
+            lifecycleScope.launch {
+                val validationState = validateInputs()
+                if (validationState == ValidationState.VALID) {
+                    startActivity(mainActivityIntent)
+                } else {
+                    showValidationDialog(validationState)
+                }
             }
         }
 
@@ -50,7 +65,6 @@ class LoginActivity : AppCompatActivity() {
         loginBinding.passwordToggle.setOnClickListener {
             togglePasswordVisibility()
         }
-
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
@@ -72,14 +86,13 @@ class LoginActivity : AppCompatActivity() {
                 }
             }
         }
-
     }
 
-    private enum class ValidationState {
-        VALID, EMAIL_EMPTY, PASSWORD_EMPTY, BOTH_EMPTY
+    enum class ValidationState {
+        VALID, INVALID, EMAIL_EMPTY, PASSWORD_EMPTY, BOTH_EMPTY
     }
 
-    private fun validateInputs(): ValidationState {
+    private suspend fun validateInputs(): ValidationState {
         val email = loginBinding.emailEditText.text.toString().trim()
         val password = loginBinding.passwordEditText.text.toString().trim()
 
@@ -100,7 +113,46 @@ class LoginActivity : AppCompatActivity() {
                 ValidationState.PASSWORD_EMPTY
             }
 
-            else -> ValidationState.VALID
+            else -> {
+                performLogin(email, password)
+            }
+        }
+    }
+
+    private suspend fun performLogin(email: String, password: String): ValidationState {
+        return withContext(Dispatchers.IO) {
+            try {
+                val client = OkHttpClient()
+
+                val json = JSONObject().apply {
+                    put("username", email)
+                    put("password", password)
+                }
+
+                val requestBody = RequestBody.create("application/json".toMediaTypeOrNull(), json.toString())
+
+                val url = "https://6f81-201-235-161-12.ngrok-free.app" // VER DONDE REUBICAR ESTE VALOR (uso ngrok porque provee https)
+                val request = Request.Builder()
+                    .url("$url/api/auth/login")
+                    .post(requestBody)
+                    .addHeader("Content-Type", "application/json")
+                    .build()
+
+                val response = client.newCall(request).execute()
+                val responseCode = response.code
+                val responseBody = response.body?.string()
+                Log.d("LoginResponse", "Código de respuesta: $responseCode")
+                Log.d("LoginResponse", "Cuerpo de la respuesta: $responseBody")
+
+                if (response.isSuccessful) {
+                    ValidationState.VALID
+                } else {
+                    ValidationState.INVALID
+                }
+            } catch (e: Exception) {
+                Log.e("LoginError", "Error durante el login: ${e.message}")
+                ValidationState.INVALID
+            }
         }
     }
 
@@ -110,6 +162,7 @@ class LoginActivity : AppCompatActivity() {
             ValidationState.PASSWORD_EMPTY -> "Por favor, ingrese su contraseña."
             ValidationState.BOTH_EMPTY -> "Por favor, complete sus datos."
             ValidationState.VALID -> return
+            ValidationState.INVALID -> "Login Error"
         }
 
         AlertDialog.Builder(this)
