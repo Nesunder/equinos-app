@@ -1,6 +1,7 @@
 package org.tensorflow.lite.examples.classification.playservices.gallery
 
 import android.content.Intent
+import android.media.MediaScannerConnection
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -20,6 +21,8 @@ class GalleryFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+    private val filePath = "/storage/emulated/0/DCIM/EquinosApp"
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -47,8 +50,8 @@ class GalleryFragment : Fragment() {
 
     private fun getImages() {
         imageList.clear()
-        val filePath = "/storage/emulated/0/DCIM/EquinosApp"
         val file = File(filePath)
+        scanDirectory()
         val files = file.listFiles()
         if (files != null) {
             for (fileItem in files) {
@@ -72,6 +75,19 @@ class GalleryFragment : Fragment() {
         adapter?.setOnItemClickListener { _: View?, path: String? ->
             startActivity(
                 imageViewerIntent.putExtra("image", path)
+            )
+        }
+    }
+
+    // Escaneo del directorio donde se guardan las imágenes para que no se muestren las que se eliminaron desde la galería
+    private fun scanDirectory() {
+        val directory = File(filePath)
+        if (directory.exists() && directory.isDirectory) {
+            MediaScannerConnection.scanFile(
+                requireContext(),
+                arrayOf(directory.toString()),
+                null,
+                null
             )
         }
     }

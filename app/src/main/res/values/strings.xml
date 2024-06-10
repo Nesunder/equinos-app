@@ -51,6 +51,12 @@
     <string name="o_ingrese_con">O ingrese con</string>
     <string name="google_login">Google login</string>
     <string name="crear_cuenta">Crear cuenta</string>
+    <string name="repetir_contrasenia">Repetir Contraseña</string>
+    <string name="repita_la_contrasenia">Repita la contraseña</string>
+    <string name="password_visibility_toggle">toggle para la visibilidad de la contraseña</string>
+    <string name="registrarse">Registrarse</string>
+    <string name="campo_usuario">Usuario</string>
+    <string name="ingrese_su_nombre_de_usuario">Ingrese su nombre de usuario</string>
     <string-array name="sexo_array">
         <item>Masculino</item>
         <item>Femenino</item>

@@ -23,7 +23,7 @@
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
         <activity
-            android:name=".login.LoginActivity"
+            android:name=".loginSignUp.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -35,6 +35,9 @@
             android:name=".ImageClassificationActivity"
             android:exported="false" />
         <activity
+            android:name=".loginSignUp.SignUpActivity"
+            android:exported="false" />
+        <activity
             android:name=".gallery.ImageViewerActivity"
             android:exported="false" />
         <activity
@@ -44,18 +47,7 @@
             tools:targetApi="O" />
         <activity
             android:name=".MainActivity"
-            android:exported="true">
-        </activity>
-
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="org.tensorflow.lite.examples.classification.playservices.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/paths" />
-        </provider>
+            android:exported="true" />
     </application>
 
 </manifest>

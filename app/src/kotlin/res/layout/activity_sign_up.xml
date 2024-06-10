@@ -45,7 +45,7 @@
         android:layout_alignParentBottom="true"
         android:layout_marginStart="12dp"
         android:layout_marginEnd="12dp"
-        android:layout_marginBottom="175dp"
+        android:layout_marginBottom="165dp"
         app:cardCornerRadius="28dp">
 
         <LinearLayout
@@ -57,11 +57,30 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="30dp"
-                android:text="@string/iniciar_sesion"
+                android:layout_marginBottom="20dp"
+                android:text="@string/registrarse"
                 android:textColor="@color/colorPrimary"
                 android:textSize="32sp"
                 android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/campo_usuario"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/nombreEditText"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="12dp"
+                android:drawableEnd="@drawable/done_icon"
+                android:hint="@string/ingrese_su_nombre_de_usuario"
+                android:importantForAutofill="no"
+                android:inputType="text"
+                android:textColorHint="@color/greyText"
+                android:textSize="16sp" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -74,7 +93,7 @@
                 android:id="@+id/emailEditText"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:layout_marginBottom="20dp"
+                android:layout_marginBottom="12dp"
                 android:drawableEnd="@drawable/done_icon"
                 android:hint="@string/ingrese_su_email"
                 android:importantForAutofill="no"
@@ -98,15 +117,16 @@
                     android:id="@+id/passwordEditText"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
-                    android:layout_marginTop="17dp"
                     android:layout_centerVertical="true"
+                    android:layout_marginBottom="20dp"
                     android:hint="@string/ingrese_su_contrasenia"
                     android:importantForAutofill="no"
                     android:inputType="textPassword"
                     android:paddingEnd="40dp"
                     android:textColorHint="@color/greyText"
                     android:textSize="16sp"
-                    tools:ignore="RtlSymmetry" />
+                    tools:ignore="RtlSymmetry" /> <!-- Add padding to the end to make space for the icon -->
+
                 <ImageView
                     android:id="@+id/passwordToggle"
                     android:layout_width="wrap_content"
@@ -120,48 +140,40 @@
                     android:src="@drawable/ic_visibility_off" />
             </RelativeLayout>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/repetir_contrasenia"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
             <RelativeLayout
+                android:layout_marginTop="-10dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="2dp">
 
-                <CheckBox
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <EditText
+                    android:id="@+id/repeatPasswordEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
                     android:layout_centerVertical="true"
-                    android:alpha="0.8"
-                    android:text="@string/recordarme" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:text="@string/olvide_mi_contrasenia" />
-
+                    android:layout_marginBottom="20dp"
+                    android:hint="@string/repita_la_contrasenia"
+                    android:importantForAutofill="no"
+                    android:inputType="textPassword"
+                    android:textColorHint="@color/greyText"
+                    android:textSize="16sp" />
 
             </RelativeLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/loginButton"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_gravity="center"
-                android:text="@string/login"
-                app:cornerRadius="16dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/registerButton"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:layout_gravity="center"
-                android:layout_marginBottom="10dp"
-                android:backgroundTint="@color/button_background"
                 android:text="@string/crear_cuenta"
-                android:textColor="@color/colorPrimary"
-                app:cornerRadius="16dp"
-                app:strokeColor="@color/colorPrimary"
-                app:strokeWidth="1dp" />
+                app:cornerRadius="16dp" />
 
         </LinearLayout>
 

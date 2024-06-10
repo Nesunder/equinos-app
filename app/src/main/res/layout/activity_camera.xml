@@ -56,8 +56,8 @@
 
     <ImageButton
         android:id="@+id/gallery_button"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
+        android:layout_width="@dimen/round_button_medium"
+        android:layout_height="@dimen/round_button_medium"
         android:layout_marginEnd="@dimen/margin_xlarge"
         android:layout_marginBottom="@dimen/margin_xlarge"
         android:background="@drawable/baseline_add_photo_alternate_24"
