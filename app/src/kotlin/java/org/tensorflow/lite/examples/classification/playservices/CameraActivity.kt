@@ -31,8 +31,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityCameraBinding
 import org.tensorflow.lite.support.label.Category
 import java.util.concurrent.Executors
@@ -88,17 +89,22 @@ class CameraActivity : AppCompatActivity() {
                 //Acá se podría abrir una actividad nueva que tenga una interfaz más dedidcada a la clasificación de una imagen cargada, con la posibilidad de guardar,
                 // reemplazar la imagen, subirla al repo
                 val uri = result.data?.data!!
-                val imageBitmap: Bitmap? = imageHelper.getBitmap(uri, contentResolver)
+                var imageBitmap: Bitmap? = null
+                lifecycleScope.launch {
+                    imageBitmap = withContext(Dispatchers.IO) {
+                        imageHelper.getBitmap(uri, contentResolver)
+                    }
 
-                activityCameraBinding.imagePredicted.setImageBitmap(imageBitmap)
+                    activityCameraBinding.imagePredicted.setImageBitmap(imageBitmap)
 
-                val recognition = classifier?.classifyImageManualProcessing(
-                    imageBitmap!!
-                )
+                    val recognition = classifier?.classifyImageManualProcessing(
+                        imageBitmap!!
+                    )
 
-                reportRecognition(recognition)
-                setPredictedView()
-                bindCameraUseCases()
+                    reportRecognition(recognition)
+                    setPredictedView()
+                    bindCameraUseCases()
+                }
 
             } else {
                 pauseAnalysis = false
