@@ -7,7 +7,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.tensorflow.lite.examples.classification.playservices.databinding.FragmentGalleryBinding
 import java.io.File
 
@@ -15,11 +19,9 @@ import java.io.File
 class GalleryFragment : Fragment() {
     private var _binding: FragmentGalleryBinding? = null
     private var imageList = ArrayList<Image>()
-    private val imageViewerIntent by lazy { Intent(activity, ImageViewerActivity::class.java) }
+    private val imageViewerIntent by lazy { Intent(requireActivity(), ImageViewerActivity::class.java) }
 
-
-    // This property is only valid between onCreateView and
-    // onDestroyView.
+    // This property is only valid between onCreateView and onDestroyView.
     private val binding get() = _binding!!
     private val filePath = "/storage/emulated/0/DCIM/EquinosApp"
 
@@ -27,15 +29,22 @@ class GalleryFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // Inflate the layout for this fragment
         _binding = FragmentGalleryBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-        binding.recyclerView.layoutManager = LinearLayoutManager(activity)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireActivity())
         binding.recyclerView.setHasFixedSize(true)
 
-        getImages()
-
-        return binding.root
+        // Fetch images when the fragment is created or resumed
+        viewLifecycleOwner.lifecycleScope.launch {
+            if (isAdded) {
+                getImages()
+            }
+        }
     }
 
     override fun onDestroyView() {
@@ -43,39 +52,38 @@ class GalleryFragment : Fragment() {
         _binding = null
     }
 
-    override fun onResume() {
-        super.onResume()
-        getImages()
-    }
-
-    private fun getImages() {
-        imageList.clear()
-        val file = File(filePath)
-        scanDirectory()
-        val files = file.listFiles()
-        if (files != null) {
-            for (fileItem in files) {
-                if (fileItem.path.endsWith(".png") || fileItem.path.endsWith(".jpg")) {
-                    imageList.add(
-                        Image(
-                            fileItem.getName(),
-                            fileItem.path,
-                            fileItem.length(),
-                            "Sereno",
-                            "Tiro al blanco",
-                            1,
-                            "pepe"
+    private suspend fun getImages() {
+        withContext(Dispatchers.IO) {
+            imageList.clear()
+            val file = File(filePath)
+            scanDirectory()
+            val files = file.listFiles()
+            if (files != null) {
+                for (fileItem in files) {
+                    if (fileItem.path.endsWith(".png") || fileItem.path.endsWith(".jpg")) {
+                        imageList.add(
+                            Image(
+                                fileItem.name,
+                                fileItem.path,
+                                fileItem.length(),
+                                "Sereno",
+                                "Tiro al blanco",
+                                1,
+                                "pepe"
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
-        val adapter = activity?.let { ImageAdapter(it, imageList) }
-        binding.recyclerView.setAdapter(adapter)
-        adapter?.setOnItemClickListener { _: View?, path: String? ->
-            startActivity(
-                imageViewerIntent.putExtra("image", path)
-            )
+        if (isAdded) {
+            val adapter = ImageAdapter(requireContext(), imageList)
+            binding.recyclerView.adapter = adapter
+            adapter.setOnItemClickListener { _, path ->
+                startActivity(
+                    imageViewerIntent.putExtra("image", path)
+                )
+            }
         }
     }
 

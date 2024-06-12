@@ -23,7 +23,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityImageClassificationBinding
 import org.tensorflow.lite.support.label.Category
 
@@ -144,15 +146,19 @@ class ImageClassificationActivity : AppCompatActivity() {
     }
 
     private fun setImage(uri: Uri) {
-        val imageBitmap: Bitmap? = imageHelper.getBitmap(uri, contentResolver)
-        imageClassificationBinding.imagePredicted.setImageBitmap(imageBitmap)
+        var imageBitmap: Bitmap? = null
+        lifecycleScope.launch {
+            imageBitmap = withContext(Dispatchers.IO) {
+                imageHelper.getBitmap(uri, contentResolver)
+            }
+            imageClassificationBinding.imagePredicted.setImageBitmap(imageBitmap)
 
-        // Método que funciona bien
-        val recognitions = classifier?.classifyImageManualProcessing(
-            imageBitmap!!
-        )
-        reportRecognition(recognitions)
-
+            // Método que funciona bien
+            val recognitions = classifier?.classifyImageManualProcessing(
+                imageBitmap!!
+            )
+            reportRecognition(recognitions)
+        }
         // Para clasificar con el otro método
         /*
         val categories = classifier?.classifyWithMetadata(
