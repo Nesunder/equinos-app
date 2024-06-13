@@ -57,6 +57,8 @@
     <string name="registrarse">Registrarse</string>
     <string name="campo_usuario">Usuario</string>
     <string name="ingrese_su_nombre_de_usuario">Ingrese su nombre de usuario</string>
+    <string name="ingrese_email_o_nombre_usuario">Ingrese email o nombre de usuario</string>
+    <string name="identificacion">Identificacion</string>
     <string-array name="sexo_array">
         <item>Masculino</item>
         <item>Femenino</item>
