@@ -7,7 +7,6 @@ import android.text.method.HideReturnsTransformationMethod
 import android.text.method.PasswordTransformationMethod
 import android.util.Log
 import android.view.WindowInsets
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
@@ -19,8 +18,6 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.FormBody
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -29,6 +26,7 @@ import org.json.JSONObject
 import org.tensorflow.lite.examples.classification.playservices.MainActivity
 import org.tensorflow.lite.examples.classification.playservices.R
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityLoginBinding
+import org.tensorflow.lite.examples.classification.playservices.settings.Network
 
 class LoginActivity : AppCompatActivity() {
 
@@ -125,15 +123,14 @@ class LoginActivity : AppCompatActivity() {
                 val client = OkHttpClient()
 
                 val json = JSONObject().apply {
-                    put("username", email)
+                    put("identificacion", email)
                     put("password", password)
                 }
 
                 val requestBody = RequestBody.create("application/json".toMediaTypeOrNull(), json.toString())
 
-                val url = "https://6f81-201-235-161-12.ngrok-free.app" // VER DONDE REUBICAR ESTE VALOR (uso ngrok porque provee https)
                 val request = Request.Builder()
-                    .url("$url/api/auth/login")
+                    .url("${Network.URL}/api/auth/login")
                     .post(requestBody)
                     .addHeader("Content-Type", "application/json")
                     .build()

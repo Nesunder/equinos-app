@@ -4,11 +4,22 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.method.HideReturnsTransformationMethod
 import android.text.method.PasswordTransformationMethod
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import org.json.JSONObject
 import org.tensorflow.lite.examples.classification.playservices.R
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivitySignUpBinding
+import org.tensorflow.lite.examples.classification.playservices.settings.Network
 
 
 class SignUpActivity : AppCompatActivity() {
@@ -30,18 +41,19 @@ class SignUpActivity : AppCompatActivity() {
 
         val loginActivityIntent = Intent(applicationContext, LoginActivity::class.java)
         signUpBinding.registerButton.setOnClickListener {
-            when (val validationState = validateInputs()) {
-                ValidationState.VALID -> {
+            lifecycleScope.launch {
+                val validationState = validateInputs()
+                if (validationState == ValidationState.VALID) {
                     startActivity(loginActivityIntent)
                     finish()
-                }
+                } else {
+                    if (validationState == ValidationState.NOT_REPEATED_PASSWORD) {
+                        togglePasswordVisibility()
+                    } else {
+                        showValidationDialog(validationState)
 
-                ValidationState.NOT_REPEATED_PASSWORD -> {
-                    togglePasswordVisibility()
-                }
+                    }
 
-                else -> {
-                    showValidationDialog(validationState)
                 }
             }
         }
@@ -52,26 +64,26 @@ class SignUpActivity : AppCompatActivity() {
     }
 
     private enum class ValidationState {
-        VALID, NAME_EMPTY, EMAIL_EMPTY, PASSWORD_EMPTY, REPEAT_PASSWORD_EMPTY, ALL_EMPTY, NOT_REPEATED_PASSWORD
+        VALID, NAME_EMPTY, EMAIL_EMPTY, PASSWORD_EMPTY, REPEAT_PASSWORD_EMPTY, ALL_EMPTY, NOT_REPEATED_PASSWORD, INVALID
     }
 
-    private fun validateInputs(): ValidationState {
-        val name = signUpBinding.nombreEditText.text.toString().trim()
+    private suspend fun validateInputs(): ValidationState {
+        val username = signUpBinding.nombreEditText.text.toString().trim()
         val email = signUpBinding.emailEditText.text.toString().trim()
         val password = signUpBinding.passwordEditText.text.toString().trim()
         val repeatPassword = signUpBinding.repeatPasswordEditText.text.toString().trim()
 
         return when {
-            password.isEmpty() && email.isEmpty() && name.isEmpty() && repeatPassword.isEmpty() -> {
-                signUpBinding.nombreEditText.error = "Debe ingresar su nombre"
+            password.isEmpty() && email.isEmpty() && username.isEmpty() && repeatPassword.isEmpty() -> {
+                signUpBinding.nombreEditText.error = "Debe ingresar su nombre de usuario"
                 signUpBinding.emailEditText.error = "Se debe ingresar el mail"
                 signUpBinding.passwordEditText.error = "Se debe ingresar la contraseña"
                 signUpBinding.repeatPasswordEditText.error = "Por favor repita su contraseña"
                 ValidationState.ALL_EMPTY
             }
 
-            name.isEmpty() -> {
-                signUpBinding.nombreEditText.error = "Debe ingresar su nombre"
+            username.isEmpty() -> {
+                signUpBinding.nombreEditText.error = "Debe ingresar su nombre de usuario"
                 ValidationState.NAME_EMPTY
             }
 
@@ -95,7 +107,47 @@ class SignUpActivity : AppCompatActivity() {
                 ValidationState.NOT_REPEATED_PASSWORD
             }
 
-            else -> ValidationState.VALID
+            else -> {
+                performSignUp(username, email, password)
+            }
+
+        }
+    }
+
+    private suspend fun performSignUp(username: String, email: String, password: String): SignUpActivity.ValidationState {
+        return withContext(Dispatchers.IO) {
+            try {
+                val client = OkHttpClient()
+
+                val json = JSONObject().apply {
+                    put("username", username)
+                    put("email", email)
+                    put("password", password)
+                }
+
+                val requestBody = RequestBody.create("application/json".toMediaTypeOrNull(), json.toString())
+
+                val request = Request.Builder()
+                    .url("${Network.URL}/api/auth/register") // TODO veterinario
+                    .post(requestBody)
+                    .addHeader("Content-Type", "application/json")
+                    .build()
+
+                val response = client.newCall(request).execute()
+                val responseCode = response.code
+                val responseBody = response.body?.string()
+                Log.d("LoginResponse", "Código de respuesta: $responseCode")
+                Log.d("LoginResponse", "Cuerpo de la respuesta: $responseBody")
+
+                if (response.isSuccessful) {
+                    ValidationState.VALID
+                } else {
+                    ValidationState.INVALID
+                }
+            } catch (e: Exception) {
+                Log.e("LoginError", "Error durante la creacion de la cuenta: ${e.message}")
+                ValidationState.INVALID
+            }
         }
     }
 
@@ -108,7 +160,7 @@ class SignUpActivity : AppCompatActivity() {
             ValidationState.REPEAT_PASSWORD_EMPTY -> "Por favor repita su contraseña"
             ValidationState.NOT_REPEATED_PASSWORD -> return
             ValidationState.VALID -> return
-
+            ValidationState.INVALID -> "Error al crear la cuenta"
         }
 
         AlertDialog.Builder(this)

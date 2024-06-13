@@ -66,7 +66,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/correo_electronico"
+                android:text="@string/identificacion"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -76,7 +76,7 @@
                 android:layout_height="48dp"
                 android:layout_marginBottom="20dp"
                 android:drawableEnd="@drawable/done_icon"
-                android:hint="@string/ingrese_su_email"
+                android:hint="@string/ingrese_email_o_nombre_usuario"
                 android:importantForAutofill="no"
                 android:inputType="textEmailAddress"
                 android:textColorHint="@color/greyText"
