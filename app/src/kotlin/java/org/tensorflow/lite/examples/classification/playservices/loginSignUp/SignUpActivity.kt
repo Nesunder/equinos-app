@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import org.tensorflow.lite.examples.classification.playservices.R
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivitySignUpBinding
@@ -125,7 +125,8 @@ class SignUpActivity : AppCompatActivity() {
                     put("password", password)
                 }
 
-                val requestBody = RequestBody.create("application/json".toMediaTypeOrNull(), json.toString())
+                val requestBody =
+                    json.toString().toRequestBody("application/json".toMediaTypeOrNull())
 
                 val request = Request.Builder()
                     .url("${Network.URL}/api/auth/register") // TODO veterinario

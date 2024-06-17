@@ -23,6 +23,9 @@
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
         <activity
+            android:name=".horseCreation.HorseCreatorActivity"
+            android:exported="false" />
+        <activity
             android:name=".loginSignUp.LoginActivity"
             android:exported="true">
             <intent-filter>

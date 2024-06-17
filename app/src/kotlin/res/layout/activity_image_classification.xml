@@ -55,7 +55,6 @@
     </FrameLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/buttonsCl"
         android:layout_width="0dp"
         android:layout_height="80dp"
         android:background="@color/colorAccent"
@@ -84,15 +83,15 @@
             android:backgroundTint="@color/white"
             android:contentDescription="@string/capture_button_alt"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/shareBtn"
+            app:layout_constraintEnd_toStartOf="@id/uploadBtn"
             app:layout_constraintStart_toEndOf="@id/galleryBtn"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
-            android:id="@+id/shareBtn"
+            android:id="@+id/uploadBtn"
             android:layout_width="56dp"
             android:layout_height="56dp"
-            android:background="@drawable/baseline_share_24"
+            android:background="@drawable/ic_upload_56"
             android:contentDescription="@string/capture_button_alt"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/saveBtn"
@@ -107,7 +106,7 @@
             android:contentDescription="@string/capture_button_alt"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/shareBtn"
+            app:layout_constraintStart_toEndOf="@id/uploadBtn"
             app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

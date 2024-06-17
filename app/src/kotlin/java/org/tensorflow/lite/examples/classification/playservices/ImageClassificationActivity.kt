@@ -10,15 +10,12 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
-import android.widget.Button
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -27,11 +24,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityImageClassificationBinding
+import org.tensorflow.lite.examples.classification.playservices.photoUpload.PhotoUploadFragment
 import org.tensorflow.lite.support.label.Category
 
 
 class ImageClassificationActivity : AppCompatActivity() {
-
 
     private lateinit var imageClassificationBinding: ActivityImageClassificationBinding
     private var uri: Uri? = null
@@ -94,7 +91,7 @@ class ImageClassificationActivity : AppCompatActivity() {
             uri?.let { setImage(it) }
         }
 
-        imageClassificationBinding.shareBtn.setOnClickListener {
+        imageClassificationBinding.uploadBtn.setOnClickListener {
             showRepositoryFormDialog()
         }
 
@@ -107,12 +104,11 @@ class ImageClassificationActivity : AppCompatActivity() {
         imageClassificationBinding.reloadBtn.setOnTouchListener { v, event ->
             return@setOnTouchListener buttonAnimation(v, event)
         }
-        imageClassificationBinding.shareBtn.setOnTouchListener { v, event ->
+        imageClassificationBinding.uploadBtn.setOnTouchListener { v, event ->
             return@setOnTouchListener buttonAnimation(v, event)
         }
 
     }
-
 
     private fun buttonAnimation(v: View, event: MotionEvent): Boolean {
         when (event.action) {
@@ -146,7 +142,7 @@ class ImageClassificationActivity : AppCompatActivity() {
     }
 
     private fun setImage(uri: Uri) {
-        var imageBitmap: Bitmap? = null
+        var imageBitmap: Bitmap?
         lifecycleScope.launch {
             imageBitmap = withContext(Dispatchers.IO) {
                 imageHelper.getBitmap(uri, contentResolver)
@@ -169,16 +165,9 @@ class ImageClassificationActivity : AppCompatActivity() {
     }
 
     private fun showRepositoryFormDialog() {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.horse_data_form, null)
-        val builder = AlertDialog.Builder(this)
-            .setView(dialogView)
-        val alertDialog = builder.show()
-
-        val cancelButton: Button = dialogView.findViewById(R.id.cancelButton)
-
-        cancelButton.setOnClickListener {
-            alertDialog.dismiss()
-        }
+        val fragmentManager = supportFragmentManager
+        val newFragment = PhotoUploadFragment()
+        newFragment.show(fragmentManager, "fragment_photo_upload")
     }
 
     private fun <T> reportItems(

@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import org.tensorflow.lite.examples.classification.playservices.ImageClassificationActivity
 import org.tensorflow.lite.examples.classification.playservices.databinding.FragmentHomeBinding
+import org.tensorflow.lite.examples.classification.playservices.horseCreation.HorseCreatorActivity
 
 
 class HomeFragment : Fragment() {
@@ -50,6 +51,12 @@ class HomeFragment : Fragment() {
 
         binding.classifyImageBtn.setOnClickListener {
             openGallery()
+        }
+
+        val horseCreatorActivity = Intent(context, HorseCreatorActivity::class.java)
+
+        binding.addHorseBtn.setOnClickListener {
+            startActivity(horseCreatorActivity)
         }
 
         return binding.root

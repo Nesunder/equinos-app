@@ -94,11 +94,11 @@
         app:layout_constraintStart_toEndOf="@id/camera_capture_button"/>
 
     <ImageButton
-        android:id="@+id/shareBtn"
+        android:id="@+id/uploadBtn"
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:layout_marginBottom="@dimen/margin_xlarge"
-        android:background="@drawable/baseline_share_56"
+        android:background="@drawable/ic_upload_56"
         app:layout_constraintHorizontal_bias="0.8"
         android:contentDescription="@string/capture_button_alt"
         android:scaleType="fitCenter"
