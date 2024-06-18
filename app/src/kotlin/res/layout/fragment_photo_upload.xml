@@ -11,7 +11,7 @@
         android:layout_gravity="center"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
-        android:text="Subir imagen"
+        android:text="@string/subir_imagen"
         android:textColor="@color/colorPrimary"
         android:textSize="48sp"
         android:textStyle="bold" />
@@ -21,7 +21,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
-        android:text="Seleccione\nel caballo"
+        android:text="@string/seleccione_el_caballo"
         android:textStyle="bold" />
 
     <LinearLayout
@@ -37,6 +37,7 @@
             android:layout_width="70dp"
             android:layout_height="70dp"
             android:layout_gravity="center_vertical"
+            android:contentDescription="@string/imagen_seleccionada"
             android:src="@drawable/caballo_inicio" />
 
         <TextView
@@ -45,7 +46,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginStart="8dp"
-            android:text="Caballo seleccionado"
+            android:text="@string/caballo_seleccionado"
             android:textSize="18sp" />
 
 
@@ -85,7 +86,8 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
-            android:text="o"
+            android:layout_marginBottom="2dp"
+            android:text="@string/o"
             android:textSize="18sp" />
 
         <View
@@ -101,7 +103,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
-        android:text="Agregue\nun caballo"
+        android:text="@string/agregue_un_caballo"
         android:textStyle="bold" />
 
     <LinearLayout

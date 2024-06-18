@@ -49,6 +49,14 @@
     <string name="identificacion">Identificacion</string>
     <string name="elegir_imagen">Elegir imagen</string>
     <string name="imagen_del_caballo_a_crear">Imagen del caballo a crear</string>
+    <string name="bot_n_de_agregar_un_caballo">Botón de agregar un caballo</string>
+    <string name="agregar_caballo">Agregar caballo</string>
+    <string name="bot_n_de_clasificar_imagen">Botón de clasificar imagen</string>
+    <string name="o">o</string>
+    <string name="agregue_un_caballo">Agregue\nun caballo</string>
+    <string name="seleccione_el_caballo">Seleccione\nel caballo</string>
+    <string name="subir_imagen">Subir imagen</string>
+    <string name="caballo_seleccionado">Caballo seleccionado</string>
     <string-array name="sexo_array">
         <item>Masculino</item>
         <item>Femenino</item>
