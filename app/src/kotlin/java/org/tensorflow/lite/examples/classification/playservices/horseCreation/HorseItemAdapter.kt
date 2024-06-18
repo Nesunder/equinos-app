@@ -11,7 +11,7 @@ import org.tensorflow.lite.examples.classification.playservices.R
 
 
 class HorseItemAdapter(
-    private val items: List<HorseItem>, private val onItemClick: (HorseItem) -> Unit
+    private var items: List<HorseItem>, private val onItemClick: (HorseItem) -> Unit
 ) :
     RecyclerView.Adapter<HorseItemAdapter.ViewHolder>() {
 
@@ -34,10 +34,22 @@ class HorseItemAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
-        holder.imageView.setImageResource(item.imageResId)
+        holder.imageView.setImageBitmap(item.imageBitmap)
         holder.textView.text = item.text
         holder.itemView.setOnClickListener { onItemClick(item) }
     }
 
     override fun getItemCount(): Int = items.size
+
+    fun updateData(newItems: List<HorseItem>) {
+        items = newItems
+        notifyDataSetChanged()
+    }
+
+    fun addItem(newItem: HorseItem) {
+        val updatedItems = items.toMutableList()
+        updatedItems.add(newItem)
+        items = updatedItems
+        notifyItemInserted(items.size - 1)
+    }
 }

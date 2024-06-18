@@ -47,6 +47,8 @@
     <string name="ingrese_su_nombre_de_usuario">Ingrese su nombre de usuario</string>
     <string name="ingrese_email_o_nombre_usuario">Ingrese email o nombre de usuario</string>
     <string name="identificacion">Identificacion</string>
+    <string name="elegir_imagen">Elegir imagen</string>
+    <string name="imagen_del_caballo_a_crear">Imagen del caballo a crear</string>
     <string-array name="sexo_array">
         <item>Masculino</item>
         <item>Femenino</item>
