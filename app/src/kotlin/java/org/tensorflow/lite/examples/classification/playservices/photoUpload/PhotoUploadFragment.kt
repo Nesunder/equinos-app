@@ -1,6 +1,8 @@
 package org.tensorflow.lite.examples.classification.playservices.photoUpload
 
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -31,13 +33,31 @@ class PhotoUploadFragment : DialogFragment() {
     private var isDropdownVisible = false
     private lateinit var viewModel: MainViewModel
 
+    companion object {
+        private const val ARG_TEXT = "arg_text"
+        private const val ARG_URI = "arg_uri"
+
+        fun newInstance(text: String, uri: Uri): PhotoUploadFragment {
+            val fragment = PhotoUploadFragment()
+            val args = Bundle()
+            args.putString(ARG_TEXT, text)
+            args.putParcelable(ARG_URI, uri)
+            fragment.arguments = args
+            return fragment
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentPhotoUploadBinding.inflate(inflater, container, false)
-        setupView(binding.root)
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupView(view)
     }
 
     override fun onStart() {
@@ -54,10 +74,22 @@ class PhotoUploadFragment : DialogFragment() {
     }
 
     private fun setupView(view: View) {
+
+        val text = arguments?.getString(ARG_TEXT)
+
+        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arguments?.getParcelable(ARG_URI, Uri::class.java)
+        } else {
+            arguments?.getParcelable("imageUri")
+        }
+
+        binding.predictionText.text = text
+        binding.predictedImage.setImageURI(bitmap)
+
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
         adapter = HorseItemAdapter(viewModel.data.value!!) { selectedItem: HorseItem ->
-            binding.selectedItemImage.setImageBitmap(selectedItem.imageBitmap)
+            binding.selectedItemImage.setImageURI(selectedItem.imageUri)
             binding.selectedItemText.text = selectedItem.text
             binding.selectedItemLayout.visibility = LinearLayout.VISIBLE
             toggleDropdown()
@@ -88,7 +120,6 @@ class PhotoUploadFragment : DialogFragment() {
         }
 
         val horseCreatorActivity = Intent(context, HorseCreatorActivity::class.java)
-
         addHorseBtn.setOnClickListener {
             startActivity(horseCreatorActivity)
         }

@@ -34,7 +34,7 @@ class HorseItemAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
-        holder.imageView.setImageBitmap(item.imageBitmap)
+        holder.imageView.setImageURI(item.imageUri)
         holder.textView.text = item.text
         holder.itemView.setOnClickListener { onItemClick(item) }
     }

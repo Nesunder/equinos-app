@@ -1,8 +1,7 @@
 package org.tensorflow.lite.examples.classification.playservices.horseCreation
 
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.AdapterView
@@ -14,32 +13,21 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.tensorflow.lite.examples.classification.playservices.ImageHelper
 import org.tensorflow.lite.examples.classification.playservices.R
 import org.tensorflow.lite.examples.classification.playservices.appRepository.MainViewModel
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityHorseCreationBinding
 
 class HorseCreatorActivity : AppCompatActivity() {
-
     private var imageSelected: Boolean = false
     private val newHorseItem: HorseItem by lazy {
         HorseItem(
-            "Nuevo caballo", BitmapFactory.decodeResource(
-                resources, R.drawable.caballo_inicio
+            "Nuevo caballo", Uri.parse(
+                "android.resource://org.tensorflow.lite.examples.classification.playservices/" + R.drawable.caballo_inicio
             )
         )
     }
     private lateinit var horseCreatorBinding: ActivityHorseCreationBinding
     private lateinit var viewModel: MainViewModel
-    private var imageBitmap: Bitmap? = null
-
-    private val imageHelper: ImageHelper by lazy {
-        ImageHelper()
-    }
 
     private val pickIntent by lazy {
         Intent(
@@ -51,23 +39,24 @@ class HorseCreatorActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (imageRetrievedCorrectly(result)) {
                 val uri = result.data?.data!!
+                horseCreatorBinding.imgChooser.setImageURI(uri)
+                newHorseItem.imageUri = uri
+                imageSelected = true
 
+                /*
                 lifecycleScope.launch {
                     imageBitmap = withContext(Dispatchers.IO) {
                         imageHelper.getBitmap(uri, contentResolver)
                     }
-                    horseCreatorBinding.imgChooser.setImageBitmap(imageBitmap)
-                    newHorseItem.imageBitmap = imageBitmap!!
                     imageSelected = true
                 }
-
+                */
             }
         }
 
     private fun imageRetrievedCorrectly(result: ActivityResult): Boolean {
         return result.resultCode == RESULT_OK && result.data != null && result.data?.data != null
     }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -118,7 +107,7 @@ class HorseCreatorActivity : AppCompatActivity() {
             // Todavía no se que es esto
             val piquete = horseCreatorBinding.checkboxSalidaAPiquete.isChecked
 
-            if (imageBitmap != null) {
+            if (imageSelected) {
                 //para subir la imagen
                 newHorseItem.text = nameInput
                 viewModel.addItem(newHorseItem)

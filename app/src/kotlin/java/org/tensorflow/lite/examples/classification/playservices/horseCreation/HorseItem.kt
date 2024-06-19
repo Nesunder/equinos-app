@@ -1,5 +1,5 @@
 package org.tensorflow.lite.examples.classification.playservices.horseCreation
+import android.net.Uri
 
-import android.graphics.Bitmap
-
-data class HorseItem(var text: String, var imageBitmap: Bitmap)
+data class HorseItem(var text: String,
+                     var imageUri: Uri)

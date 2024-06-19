@@ -30,6 +30,8 @@ import org.tensorflow.lite.support.label.Category
 
 class ImageClassificationActivity : AppCompatActivity() {
 
+    private var classifiedBitmap: Bitmap? = null
+    private var result: String = ""
     private lateinit var imageClassificationBinding: ActivityImageClassificationBinding
     private var uri: Uri? = null
     private var classifier: ImageClassificationHelper? = null
@@ -92,7 +94,9 @@ class ImageClassificationActivity : AppCompatActivity() {
         }
 
         imageClassificationBinding.uploadBtn.setOnClickListener {
-            showRepositoryFormDialog()
+            if (uri != null) {
+                showRepositoryFormDialog()
+            }
         }
 
         imageClassificationBinding.galleryBtn.setOnTouchListener { v, event ->
@@ -142,18 +146,21 @@ class ImageClassificationActivity : AppCompatActivity() {
     }
 
     private fun setImage(uri: Uri) {
-        var imageBitmap: Bitmap?
         lifecycleScope.launch {
-            imageBitmap = withContext(Dispatchers.IO) {
+            classifiedBitmap = withContext(Dispatchers.IO) {
                 imageHelper.getBitmap(uri, contentResolver)
             }
-            imageClassificationBinding.imagePredicted.setImageBitmap(imageBitmap)
+            imageClassificationBinding.imagePredicted.setImageBitmap(classifiedBitmap)
 
             // Método que funciona bien
             val recognitions = classifier?.classifyImageManualProcessing(
-                imageBitmap!!
+                classifiedBitmap!!
             )
             reportRecognition(recognitions)
+
+            if (!recognitions.isNullOrEmpty()) {
+                result = recognitions[0].title
+            }
         }
         // Para clasificar con el otro método
         /*
@@ -165,9 +172,11 @@ class ImageClassificationActivity : AppCompatActivity() {
     }
 
     private fun showRepositoryFormDialog() {
-        val fragmentManager = supportFragmentManager
-        val newFragment = PhotoUploadFragment()
-        newFragment.show(fragmentManager, "fragment_photo_upload")
+        val newFragment = PhotoUploadFragment.newInstance(
+            result,
+            uri!!
+        )
+        newFragment.show(supportFragmentManager, "fragment_photo_upload")
     }
 
     private fun <T> reportItems(
