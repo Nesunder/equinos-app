@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -14,6 +15,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -39,6 +41,8 @@ import kotlin.random.Random
 /** Activity that displays the camera and performs object detection on the incoming frames */
 class CameraActivity : AppCompatActivity() {
 
+    private var uri: Uri? = null
+    private var predictionResult: String = ""
     private lateinit var preview: Preview
     private lateinit var cameraProvider: ProcessCameraProvider
     private lateinit var activityCameraBinding: ActivityCameraBinding
@@ -80,24 +84,26 @@ class CameraActivity : AppCompatActivity() {
 
     private val openGalleryLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK && result.data != null && result.data?.data != null) {
+            if (imageRetrievedCorrectly(result)) {
                 if (!pauseAnalysis) pauseAnalysis = true
-                //Acá se podría abrir una actividad nueva que tenga una interfaz más dedidcada a la clasificación de una imagen cargada, con la posibilidad de guardar,
-                // reemplazar la imagen, subirla al repo
-                val uri = result.data?.data!!
+                uri = result.data?.data!!
                 var imageBitmap: Bitmap?
                 lifecycleScope.launch {
                     imageBitmap = withContext(Dispatchers.IO) {
-                        imageHelper.getBitmap(uri, contentResolver)
+                        imageHelper.getBitmap(uri!!, contentResolver)
                     }
 
                     activityCameraBinding.imagePredicted.setImageBitmap(imageBitmap)
 
-                    val recognition = classifier?.classifyImageManualProcessing(
+                    val categories = classifier?.classifyImageManualProcessing(
                         imageBitmap!!
                     )
 
-                    reportRecognition(recognition)
+                    reportRecognition(categories)
+                    if (!categories.isNullOrEmpty()) {
+                        predictionResult = categories[0].title
+                    }
+
                     setPredictedView()
                     bindCameraUseCases()
                 }
@@ -108,6 +114,10 @@ class CameraActivity : AppCompatActivity() {
                 bindCameraUseCases()
             }
         }
+
+    private fun imageRetrievedCorrectly(result: ActivityResult): Boolean {
+        return result.resultCode == RESULT_OK && result.data != null && result.data?.data != null
+    }
 
     private fun setPredictedView() {
         activityCameraBinding.imagePredicted.visibility = View.VISIBLE
@@ -163,6 +173,13 @@ class CameraActivity : AppCompatActivity() {
                     bitmapBuffer, 0, 0, bitmapBuffer.width, bitmapBuffer.height, matrix, true
                 )
                 activityCameraBinding.imagePredicted.setImageBitmap(uprightImage)
+
+                lifecycleScope.launch {
+                    uri = imageHelper.getImageUriFromBitmap(
+                        this@CameraActivity, uprightImage
+                    )
+                }
+
                 activityCameraBinding.imagePredicted.visibility = View.VISIBLE
                 activityCameraBinding.saveButton?.visibility = View.VISIBLE
                 activityCameraBinding.uploadBtn?.visibility = View.VISIBLE
@@ -179,7 +196,9 @@ class CameraActivity : AppCompatActivity() {
         }
 
         activityCameraBinding.uploadBtn?.setOnClickListener {
-            showRepositoryFormDialog()
+            if (uri != null) {
+                showRepositoryFormDialog()
+            }
         }
     }
 
@@ -203,35 +222,31 @@ class CameraActivity : AppCompatActivity() {
     private fun saveClassifiedPhoto() {
         lifecycleScope.launch {
 
-            val path = imageHelper.saveBitmapFile(
+            val path = imageHelper.savePhotoFromBitmap(
                 imageHelper.getBitmapFromView(
                     activityCameraBinding.flPreviewViewContainer!!
-                ),
-                contentResolver
+                ), contentResolver
             )
 
             //cancelProgressDialog()
             if (path.isNotEmpty()) {
                 Toast.makeText(
-                    this@CameraActivity,
-                    "Archivo guardado: $path",
-                    Toast.LENGTH_SHORT
+                    this@CameraActivity, "Archivo guardado: $path", Toast.LENGTH_SHORT
                 ).show()
                 //shareFile(path)
             } else {
                 Toast.makeText(
-                    this@CameraActivity,
-                    "Error al guardar el archivo",
-                    Toast.LENGTH_SHORT
+                    this@CameraActivity, "Error al guardar el archivo", Toast.LENGTH_SHORT
                 ).show()
             }
         }
     }
 
     private fun showRepositoryFormDialog() {
-        val fragmentManager = supportFragmentManager
-        val newFragment = PhotoUploadFragment()
-        newFragment.show(fragmentManager, "fragment_photo_upload")
+        val newFragment = PhotoUploadFragment.newInstance(
+            predictionResult, uri!!
+        )
+        newFragment.show(supportFragmentManager, "fragment_photo_upload")
     }
 
     /** Declare and bind preview and analysis use cases */
@@ -278,10 +293,13 @@ class CameraActivity : AppCompatActivity() {
                     // Copy out RGB bits to our shared buffer
                     image.use { bitmapBuffer.copyPixelsFromBuffer(image.planes[0].buffer) }
 
-                    val categories =
-                        classifier?.classifyImageManualProcessing(bitmapBuffer)
+                    val categories = classifier?.classifyImageManualProcessing(bitmapBuffer)
 
                     reportRecognition(categories)
+
+                    if (!categories.isNullOrEmpty()) {
+                        predictionResult = categories[0].title
+                    }
 
                     // Compute the FPS of the entire pipeline
                     val frameCount = 10
@@ -311,8 +329,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun <T> reportItems(
-        items: List<T>?,
-        formatItem: (T) -> String
+        items: List<T>?, formatItem: (T) -> String
     ) = activityCameraBinding.viewFinder.post {
 
         if (items == null || items.size < MAX_REPORT) {

@@ -77,14 +77,14 @@ class PhotoUploadFragment : DialogFragment() {
 
         val text = arguments?.getString(ARG_TEXT)
 
-        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             arguments?.getParcelable(ARG_URI, Uri::class.java)
         } else {
-            arguments?.getParcelable("imageUri")
+            arguments?.getParcelable(ARG_URI)
         }
 
         binding.predictionText.text = text
-        binding.predictedImage.setImageURI(bitmap)
+        binding.predictedImage.setImageURI(uri)
 
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 

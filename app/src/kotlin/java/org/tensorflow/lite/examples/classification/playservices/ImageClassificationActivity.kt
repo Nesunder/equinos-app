@@ -14,6 +14,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -49,11 +50,15 @@ class ImageClassificationActivity : AppCompatActivity() {
 
     private val openGalleryLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK && result.data != null && result.data?.data != null) {
+            if (imageRetrievedCorrectly(result)) {
                 uri = result.data?.data!!
                 uri?.let { setImage(it) }
             }
         }
+
+    private fun imageRetrievedCorrectly(result: ActivityResult): Boolean {
+        return result.resultCode == RESULT_OK && result.data != null && result.data?.data != null
+    }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -153,13 +158,13 @@ class ImageClassificationActivity : AppCompatActivity() {
             imageClassificationBinding.imagePredicted.setImageBitmap(classifiedBitmap)
 
             // Método que funciona bien
-            val recognitions = classifier?.classifyImageManualProcessing(
+            val categories = classifier?.classifyImageManualProcessing(
                 classifiedBitmap!!
             )
-            reportRecognition(recognitions)
+            reportRecognition(categories)
 
-            if (!recognitions.isNullOrEmpty()) {
-                result = recognitions[0].title
+            if (!categories.isNullOrEmpty()) {
+                result = categories[0].title
             }
         }
         // Para clasificar con el otro método
@@ -215,8 +220,7 @@ class ImageClassificationActivity : AppCompatActivity() {
 
     private fun saveClassifiedPhoto() {
         lifecycleScope.launch {
-
-            val path = imageHelper.saveBitmapFile(
+            val path = imageHelper.savePhotoFromBitmap(
                 imageHelper.getBitmapFromView(
                     imageClassificationBinding.flPreviewViewContainer
                 ),
