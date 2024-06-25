@@ -1,6 +1,8 @@
 package org.tensorflow.lite.examples.classification.playservices
 
 import android.Manifest
+import android.animation.Animator
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -12,6 +14,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
 import androidx.activity.addCallback
@@ -20,7 +23,9 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
+import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -33,21 +38,23 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityCameraBinding
 import org.tensorflow.lite.examples.classification.playservices.photoUpload.PhotoUploadFragment
-import org.tensorflow.lite.support.label.Category
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
+import android.animation.AnimatorSet
+import android.view.animation.AccelerateDecelerateInterpolator
 
 /** Activity that displays the camera and performs object detection on the incoming frames */
 class CameraActivity : AppCompatActivity() {
 
+    private lateinit var imageAnalysis: ImageAnalysis
     private var uri: Uri? = null
     private var predictionResult: String = ""
     private lateinit var preview: Preview
     private lateinit var cameraProvider: ProcessCameraProvider
     private lateinit var activityCameraBinding: ActivityCameraBinding
-
     private lateinit var bitmapBuffer: Bitmap
+    private lateinit var cameraControl: CameraControl
 
     private val executor = Executors.newSingleThreadExecutor()
 
@@ -61,8 +68,7 @@ class CameraActivity : AppCompatActivity() {
 
     private val pickIntent by lazy {
         Intent(
-            Intent.ACTION_PICK,
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         )
     }
 
@@ -200,6 +206,21 @@ class CameraActivity : AppCompatActivity() {
                 showRepositoryFormDialog()
             }
         }
+
+        activityCameraBinding.viewFinder.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                val meteringPointFactory = activityCameraBinding.viewFinder.meteringPointFactory
+                val meteringPoint = meteringPointFactory.createPoint(event.x, event.y)
+                val focusAction = FocusMeteringAction.Builder(meteringPoint).build()
+                v.performClick()
+                // Show animation
+                showFocusAnimation(event.x, event.y)
+
+                // Perform focus action
+                cameraControl.startFocusAndMetering(focusAction)
+            }
+            return@setOnTouchListener true
+        }
     }
 
     override fun onDestroy() {
@@ -265,7 +286,7 @@ class CameraActivity : AppCompatActivity() {
                     .setTargetRotation(activityCameraBinding.viewFinder.display.rotation).build()
 
                 // Set up the image analysis use case which will process frames in real time
-                val imageAnalysis =
+                imageAnalysis =
                     ImageAnalysis.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9)
                         .setTargetRotation(activityCameraBinding.viewFinder.display.rotation)
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
@@ -318,10 +339,11 @@ class CameraActivity : AppCompatActivity() {
 
                 // Apply declared configs to CameraX using the same lifecycle owner
                 cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(
+                val camera = cameraProvider.bindToLifecycle(
                     this as LifecycleOwner, cameraSelector, preview, imageAnalysis
                 )
 
+                cameraControl = camera.cameraControl
                 // Use the camera object to link our preview use case with the view
                 preview.setSurfaceProvider(activityCameraBinding.viewFinder.surfaceProvider)
             }, ContextCompat.getMainExecutor(this)
@@ -353,14 +375,6 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
-    private fun reportCategories(
-        categories: List<Category>?
-    ) {
-        reportItems(categories) { category ->
-            "${"%.2f".format(category.score)} ${category.label}"
-        }
-    }
-
     override fun onResume() {
         super.onResume()
 
@@ -372,6 +386,36 @@ class CameraActivity : AppCompatActivity() {
         } else {
             bindCameraUseCases()
         }
+    }
+
+    private fun showFocusAnimation(x: Float, y: Float) {
+        val focusView = activityCameraBinding.focusView!!
+        focusView.x = x - focusView.width / 2
+        focusView.y = y - focusView.height / 2
+        focusView.visibility = View.VISIBLE
+
+        val scaleX = ObjectAnimator.ofFloat(focusView.x, "scaleX", 1.5f, 1.0f)
+        val scaleY = ObjectAnimator.ofFloat(focusView.y, "scaleY", 1.5f, 1.0f)
+        val alpha = ObjectAnimator.ofFloat(focusView.visibility, "alpha", 0.8f, 0.0f)
+
+        val animatorSet = AnimatorSet().apply {
+            playTogether(scaleX, scaleY, alpha)
+            duration = 300
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+
+        animatorSet.start()
+        animatorSet.addListener(object : Animator.AnimatorListener {
+            override fun onAnimationStart(animation: Animator) { }
+
+            override fun onAnimationEnd(animation: Animator) {
+                focusView.visibility = View.GONE
+            }
+
+            override fun onAnimationCancel(animation: Animator) { }
+
+            override fun onAnimationRepeat(animation: Animator) { }
+        })
     }
 
     override fun onRequestPermissionsResult(
