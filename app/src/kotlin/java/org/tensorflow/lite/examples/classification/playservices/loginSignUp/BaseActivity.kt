@@ -1,18 +1,11 @@
 package org.tensorflow.lite.examples.classification.playservices.loginSignUp
 
 import android.content.Context
-import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
-import org.tensorflow.lite.examples.classification.playservices.settings.Network
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -23,7 +16,6 @@ abstract class BaseActivity : AppCompatActivity() {
         INVALID,
         EMAIL_EMPTY,
         PASSWORD_EMPTY,
-        BOTH_EMPTY,
         ALL_EMPTY,
         NAME_EMPTY,
         REPEAT_PASSWORD_EMPTY,

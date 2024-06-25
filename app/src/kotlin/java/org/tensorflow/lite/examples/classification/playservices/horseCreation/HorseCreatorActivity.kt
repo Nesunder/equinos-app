@@ -52,6 +52,8 @@ class HorseCreatorActivity : AppCompatActivity() {
                 result.data?.data?.let { uri ->
                     imageUri = uri
                     horseCreatorBinding.imgChooser.setImageURI(uri)
+                    newHorseItem.imageUri = uri
+                    imageSelected = true
                 }
             }
         }
@@ -121,9 +123,13 @@ class HorseCreatorActivity : AppCompatActivity() {
             val inputStream: InputStream? = contentResolver.openInputStream(imageUri)
             val bytes: ByteArray? = inputStream?.readBytes()
             lifecycleScope.launch {
-                pushearCaballo(caballoJson, bytes)
+                val validationState = pushearCaballo(caballoJson, bytes)
+                if (validationState == ValidationState.VALID) {
+                    showDialog(this@HorseCreatorActivity)
+                } else {
+                    finish()
+                }
             }
-            finish()
         }
     }
 
@@ -162,7 +168,6 @@ class HorseCreatorActivity : AppCompatActivity() {
 
                 val response = client.newCall(request).execute()
                 if (response.isSuccessful) {
-                    // No funca showDialog(this@HorseCreatorActivity)
                     ValidationState.VALID
                 } else {
                     ValidationState.INVALID
@@ -173,7 +178,7 @@ class HorseCreatorActivity : AppCompatActivity() {
         }
     }
 
-    fun buildCaballoJson(
+    private fun buildCaballoJson(
         nombre: String,
         sexo: String,
         entrenamiento: Boolean,
@@ -220,13 +225,13 @@ class HorseCreatorActivity : AppCompatActivity() {
         }
     }
 
-    // NO funca
     private fun showDialog(context: Context) {
         AlertDialog.Builder(context)
             .setTitle("Carga caballo")
             .setMessage("Carga exitosa")
             .setPositiveButton("OK") { dialog, _ ->
                 dialog.dismiss()
+                finish()
             }.show()
     }
 }

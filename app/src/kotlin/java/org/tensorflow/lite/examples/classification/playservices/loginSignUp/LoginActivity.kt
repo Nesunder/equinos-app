@@ -1,6 +1,5 @@
 package org.tensorflow.lite.examples.classification.playservices.loginSignUp
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.method.HideReturnsTransformationMethod
@@ -51,7 +50,7 @@ class LoginActivity : BaseActivity() {
         }
     }
 
-    private suspend fun validateInputs(): ValidationState {
+    private fun validateInputs(): ValidationState {
         val email = loginBinding.emailEditText.text.toString().trim()
         val password = loginBinding.passwordEditText.text.toString().trim()
 
