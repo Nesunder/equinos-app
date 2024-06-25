@@ -99,17 +99,7 @@ class CameraActivity : AppCompatActivity() {
                         imageHelper.getBitmap(uri!!, contentResolver)
                     }
 
-                    activityCameraBinding.imagePredicted.setImageBitmap(imageBitmap)
-
-                    val categories = classifier?.classifyImageManualProcessing(
-                        imageBitmap!!
-                    )
-
-                    reportRecognition(categories)
-                    if (!categories.isNullOrEmpty()) {
-                        predictionResult = categories[0].title
-                    }
-
+                    imageBitmap?.let { classifyAndSetPredictedImage(it) }
                     setPredictedView()
                     bindCameraUseCases()
                 }
@@ -171,26 +161,32 @@ class CameraActivity : AppCompatActivity() {
             } else {
                 // Otherwise, pause image analysis and freeze image
                 pauseAnalysis = true
+
+                // Capture bitmap from PreviewView
+                val unpredictedImage = activityCameraBinding.viewFinder.bitmap
+                if (unpredictedImage == null) {
+                    it.isEnabled = true
+                    return@setOnClickListener
+                }
+
                 val matrix = Matrix().apply {
-                    postRotate(imageRotationDegrees.toFloat())
                     if (isFrontFacing) postScale(-1f, 1f)
                 }
-                val uprightImage = Bitmap.createBitmap(
-                    bitmapBuffer, 0, 0, bitmapBuffer.width, bitmapBuffer.height, matrix, true
+                val correctedImage = Bitmap.createBitmap(
+                    unpredictedImage, 0, 0, unpredictedImage.width, unpredictedImage.height, matrix, true
                 )
-                activityCameraBinding.imagePredicted.setImageBitmap(uprightImage)
 
-                lifecycleScope.launch {
-                    uri = imageHelper.getImageUriFromBitmap(
-                        this@CameraActivity, uprightImage
-                    )
-                }
-
+                classifyAndSetPredictedImage(correctedImage)
                 activityCameraBinding.imagePredicted.visibility = View.VISIBLE
                 activityCameraBinding.saveButton?.visibility = View.VISIBLE
                 activityCameraBinding.uploadBtn?.visibility = View.VISIBLE
-            }
 
+                lifecycleScope.launch {
+                    uri = imageHelper.getImageUriFromBitmap(
+                        this@CameraActivity, correctedImage
+                    )
+                }
+            }
             // Re-enable camera controls
             it.isEnabled = true
         }
@@ -375,6 +371,18 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
+    private fun classifyAndSetPredictedImage(bitmap: Bitmap) {
+        activityCameraBinding.imagePredicted.setImageBitmap(bitmap)
+
+        // Perform classification on the captured image
+        val categories = classifier?.classifyImageManualProcessing(bitmap)
+        reportRecognition(categories)
+
+        if (!categories.isNullOrEmpty()) {
+            predictionResult = categories[0].title
+        }
+    }
+
     override fun onResume() {
         super.onResume()
 
@@ -406,15 +414,15 @@ class CameraActivity : AppCompatActivity() {
 
         animatorSet.start()
         animatorSet.addListener(object : Animator.AnimatorListener {
-            override fun onAnimationStart(animation: Animator) { }
+            override fun onAnimationStart(animation: Animator) {}
 
             override fun onAnimationEnd(animation: Animator) {
                 focusView.visibility = View.GONE
             }
 
-            override fun onAnimationCancel(animation: Animator) { }
+            override fun onAnimationCancel(animation: Animator) {}
 
-            override fun onAnimationRepeat(animation: Animator) { }
+            override fun onAnimationRepeat(animation: Animator) {}
         })
     }
 
