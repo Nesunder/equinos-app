@@ -47,8 +47,8 @@
         android:id="@+id/imgChooser"
         android:layout_width="80dp"
         android:layout_height="80dp"
-        android:src="@drawable/caballo_inicio"
         android:contentDescription="@string/imagen_del_caballo_a_crear"
+        android:src="@drawable/caballo_inicio"
         app:layout_constraintBottom_toBottomOf="@id/imgChooserView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/tvChooseImg"
@@ -62,11 +62,11 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:hint="@string/nombre"
-        app:layout_constraintBottom_toTopOf="@id/editEdad"
+        app:layout_constraintBottom_toTopOf="@id/editFechaNacimiento"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/imgChooser"
-        app:startIconDrawable="@drawable/baseline_person_24">
+        app:startIconDrawable="@drawable/done_icon">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editNombreInput"
@@ -76,24 +76,25 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/editEdad"
+        android:id="@+id/editFechaNacimiento"
         style="@style/CustomTextInputLayout"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:hint="@string/edad"
+        android:hint="@string/fecha_de_nacimiento"
         app:layout_constraintBottom_toTopOf="@id/editObservaciones"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/editNombre"
-        app:startIconDrawable="@drawable/baseline_person_24">
+        app:startIconDrawable="@drawable/baseline_calendar_month_24">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editEdadInput"
+            android:id="@+id/editFechaNacimientoInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="number" />
+            android:focusable="false"
+            android:inputType="none" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -107,9 +108,8 @@
         app:layout_constraintBottom_toTopOf="@id/sexoLabel"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/editEdad"
-
-        app:startIconDrawable="@drawable/baseline_person_24">
+        app:layout_constraintTop_toBottomOf="@id/editFechaNacimiento"
+        app:startIconDrawable="@drawable/ic_visibility">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editObservacionesInput"

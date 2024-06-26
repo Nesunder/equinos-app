@@ -1,5 +1,6 @@
 package org.tensorflow.lite.examples.classification.playservices.horseCreation
 
+import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -31,6 +32,8 @@ import org.tensorflow.lite.examples.classification.playservices.databinding.Acti
 import org.tensorflow.lite.examples.classification.playservices.settings.Network
 import java.io.IOException
 import java.io.InputStream
+import java.util.Calendar
+
 
 class HorseCreatorActivity : AppCompatActivity() {
     private var imageSelected: Boolean = false
@@ -80,6 +83,12 @@ class HorseCreatorActivity : AppCompatActivity() {
             finish()
         }
 
+        //usar esto para mandar la fecha
+        var dateInput = ""
+        horseCreatorBinding.editFechaNacimientoInput.setOnClickListener {
+            dateInput = setDate()
+        }
+
         var sex = "Masculino"  // DEBERIA SER UN ENUM AQUI TAMBIEN QUIZAS
 
         // Listener para obtener el valor del spinner
@@ -98,7 +107,6 @@ class HorseCreatorActivity : AppCompatActivity() {
 
         horseCreatorBinding.confirmButton.setOnClickListener {
             val nameInput = horseCreatorBinding.editNombreInput.text.toString()
-            val ageInput = horseCreatorBinding.editNombreInput.text.toString() // TODO cambiar por fecha nacimiento
             val observationsInput = horseCreatorBinding.editObservacionesInput.text.toString()
             val trained = horseCreatorBinding.checkboxEntrenado.isChecked
             val withPain = horseCreatorBinding.checkboxDolor.isChecked
@@ -233,5 +241,30 @@ class HorseCreatorActivity : AppCompatActivity() {
                 dialog.dismiss()
                 finish()
             }.show()
+    }
+
+    private fun setDate(): String {
+        var dateValue = ""
+        val c = Calendar.getInstance()
+
+        val year = c.get(Calendar.YEAR)
+        val month = c.get(Calendar.MONTH)
+        val day = c.get(Calendar.DAY_OF_MONTH)
+
+        val datePickerDialog = DatePickerDialog(
+            // passing context.
+            this, { _, pickerYear, monthOfYear, dayOfMonth ->
+                // setting date to the edit text
+                val displayDate =
+                    (dayOfMonth.toString() + "/" + (monthOfYear + 1) + "/" + pickerYear)
+                dateValue = (dayOfMonth.toString() + "-" + (monthOfYear + 1) + "-" + pickerYear)
+                horseCreatorBinding.editFechaNacimientoInput.setText(displayDate)
+            },
+            // passing year, month and day for the selected date in our date picker.
+            year, month, day
+        )
+        // calling show to display our date picker dialog.
+        datePickerDialog.show()
+        return dateValue
     }
 }

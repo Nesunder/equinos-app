@@ -57,6 +57,7 @@
     <string name="seleccione_el_caballo">Seleccione\nel caballo</string>
     <string name="subir_imagen">Subir imagen</string>
     <string name="caballo_seleccionado">Caballo seleccionado</string>
+    <string name="fecha_de_nacimiento">Fecha de nacimiento</string>
     <string-array name="sexo_array">
         <item>Masculino</item>
         <item>Femenino</item>
