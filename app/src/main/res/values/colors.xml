@@ -5,15 +5,15 @@
     <color name="white_gray">#AFAFAF</color>
     <color name="purple_200">#8B67CC</color>
 
+    <!-- Tema primario, con color azul" -->
+    <color name="colorPrimary">#3195E4</color>
+    <color name="colorAccent">#1B418C</color>
+    <color name="colorAccent2old">#273859</color>
+
     <!-- Tema alternativo, con color violeta" -->
     <color name="colorPrimaryAlt">#7E57C2</color>
     <color name="colorAccentAlt">#673AB7</color>
     <color name="colorAccentOld">#5D34A8</color>
-
-    <!-- Tema primario, con color azul" -->
-    <color name="colorPrimary">#227AC1</color>
-    <color name="colorAccent">#1B418C</color>
-    <color name="colorAccent2old">#273859</color>
 
     <color name="colorAccent3">#4B286D</color>
     <color name="purple_700">#3D226C</color>

@@ -1,104 +1,64 @@
 package org.tensorflow.lite.examples.classification.playservices.loginSignUp
 
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.text.method.HideReturnsTransformationMethod
 import android.text.method.PasswordTransformationMethod
-import android.util.Log
-import android.view.WindowInsets
 import androidx.activity.enableEdgeToEdge
-import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.doOnAttach
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
 import org.json.JSONObject
 import org.tensorflow.lite.examples.classification.playservices.MainActivity
 import org.tensorflow.lite.examples.classification.playservices.R
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityLoginBinding
 import org.tensorflow.lite.examples.classification.playservices.settings.Network
+import org.tensorflow.lite.examples.classification.playservices.settings.Network.Companion.setAccessToken
 
-class LoginActivity : AppCompatActivity() {
+class LoginActivity : BaseActivity() {
 
     private lateinit var loginBinding: ActivityLoginBinding
     private var isPasswordVisible = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Inicializar Network con el contexto de esta actividad
+        Network.initialize(applicationContext)
+
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         loginBinding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(loginBinding.root)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            setWindowsInsets()
-        }
 
         val mainActivityIntent = Intent(applicationContext, MainActivity::class.java)
         loginBinding.loginButton.setOnClickListener {
             lifecycleScope.launch {
                 val validationState = validateInputs()
                 if (validationState == ValidationState.VALID) {
-                    startActivity(mainActivityIntent)
+                    val success = performLogin()
+                    if (success) {
+                        startActivity(mainActivityIntent)
+                        finish()
+                    } else {
+                        showValidationDialog(this@LoginActivity, ValidationState.INVALID, getLoginMessages())
+                    }
                 } else {
-                    showValidationDialog(validationState)
+                    showValidationDialog(this@LoginActivity, validationState, getLoginMessages())
                 }
             }
         }
-
-        val signUpActivityIntent = Intent(applicationContext, SignUpActivity::class.java)
-        loginBinding.registerButton.setOnClickListener {
-            startActivity(signUpActivityIntent)
-        }
-
         loginBinding.passwordToggle.setOnClickListener {
             togglePasswordVisibility()
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.R)
-    private fun setWindowsInsets() {
-        var hasGestureNavigation: Boolean
-        loginBinding.root.doOnAttach { view ->
-            val insets = view.rootWindowInsets?.getInsets(WindowInsets.Type.systemGestures())
-            hasGestureNavigation = insets?.let {
-                it.left > 0 || it.right > 0
-            } ?: false
-
-            if (hasGestureNavigation) {
-                ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insetsBars ->
-                    val systemBars = insetsBars.getInsets(WindowInsetsCompat.Type.systemBars())
-                    v.setPadding(
-                        systemBars.left, systemBars.top, systemBars.right, systemBars.bottom
-                    )
-                    insetsBars
-                }
-            }
-        }
-    }
-
-    enum class ValidationState {
-        VALID, INVALID, EMAIL_EMPTY, PASSWORD_EMPTY, BOTH_EMPTY
-    }
-
-    private suspend fun validateInputs(): ValidationState {
+    private fun validateInputs(): ValidationState {
         val email = loginBinding.emailEditText.text.toString().trim()
         val password = loginBinding.passwordEditText.text.toString().trim()
 
         return when {
-            password.isEmpty() && email.isEmpty() -> {
+            email.isEmpty() && password.isEmpty() -> {
                 loginBinding.emailEditText.error = "Se debe ingresar el mail"
                 loginBinding.passwordEditText.error = "Se debe ingresar la contraseña"
-                ValidationState.BOTH_EMPTY
+                ValidationState.ALL_EMPTY
             }
 
             email.isEmpty() -> {
@@ -111,63 +71,38 @@ class LoginActivity : AppCompatActivity() {
                 ValidationState.PASSWORD_EMPTY
             }
 
-            else -> {
-                performLogin(email, password)
-            }
+            else -> ValidationState.VALID
         }
     }
 
-    private suspend fun performLogin(email: String, password: String): ValidationState {
-        return withContext(Dispatchers.IO) {
-            try {
-                val client = OkHttpClient()
+    private suspend fun performLogin(): Boolean {
+        val email = loginBinding.emailEditText.text.toString().trim()
+        val password = loginBinding.passwordEditText.text.toString().trim()
 
-                val json = JSONObject().apply {
-                    put("identificacion", email)
-                    put("password", password)
-                }
+        val requestBody = JSONObject().apply {
+            put("identificacion", email)
+            put("password", password)
+        }
 
-                val requestBody = RequestBody.create("application/json".toMediaTypeOrNull(), json.toString())
-
-                val request = Request.Builder()
-                    .url("${Network.URL}/api/auth/login")
-                    .post(requestBody)
-                    .addHeader("Content-Type", "application/json")
-                    .build()
-
-                val response = client.newCall(request).execute()
-                val responseCode = response.code
-                val responseBody = response.body?.string()
-                Log.d("LoginResponse", "Código de respuesta: $responseCode")
-                Log.d("LoginResponse", "Cuerpo de la respuesta: $responseBody")
-
-                if (response.isSuccessful) {
-                    ValidationState.VALID
-                } else {
-                    ValidationState.INVALID
-                }
-            } catch (e: Exception) {
-                Log.e("LoginError", "Error durante el login: ${e.message}")
-                ValidationState.INVALID
-            }
+        return try {
+            val response = performNetworkOperation("${Network.BASE_URL}/api/auth/login", requestBody)
+            val jsonResponse = JSONObject(response)
+            val accessToken = jsonResponse.getString("accessToken")
+            setAccessToken(accessToken)
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
     }
 
-    private fun showValidationDialog(validationState: ValidationState) {
-        val message = when (validationState) {
-            ValidationState.EMAIL_EMPTY -> "Por favor, ingrese su mail."
-            ValidationState.PASSWORD_EMPTY -> "Por favor, ingrese su contraseña."
-            ValidationState.BOTH_EMPTY -> "Por favor, complete sus datos."
-            ValidationState.VALID -> return
-            ValidationState.INVALID -> "Login Error"
-        }
-
-        AlertDialog.Builder(this)
-            .setTitle("Error de validación")
-            .setMessage(message)
-            .setPositiveButton("OK") { dialog, _ ->
-                dialog.dismiss()
-            }.show()
+    private fun getLoginMessages(): Map<ValidationState, String> {
+        return mapOf(
+            ValidationState.EMAIL_EMPTY to "Por favor, ingrese su mail.",
+            ValidationState.PASSWORD_EMPTY to "Por favor, ingrese su contraseña.",
+            ValidationState.ALL_EMPTY to "Por favor, complete sus datos.",
+            ValidationState.INVALID to "Error al iniciar sesión"
+        )
     }
 
     private fun togglePasswordVisibility() {

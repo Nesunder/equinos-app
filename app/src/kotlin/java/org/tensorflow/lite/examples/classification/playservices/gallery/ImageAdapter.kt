@@ -41,15 +41,9 @@ class ImageAdapter(private var context: Context, private var arrayList: ArrayLis
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var imageView: ImageView
-        var title: TextView
-        var size: TextView
-
-        init {
-            imageView = itemView.findViewById(R.id.list_item_image)
-            title = itemView.findViewById(R.id.list_item_title)
-            size = itemView.findViewById(R.id.list_item_size)
-        }
+        var imageView: ImageView = itemView.findViewById(R.id.list_item_image)
+        var title: TextView = itemView.findViewById(R.id.list_item_title)
+        var size: TextView = itemView.findViewById(R.id.list_item_size)
     }
 
     fun setOnItemClickListener(onItemClickListener: OnItemClickListener?) {

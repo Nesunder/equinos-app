@@ -2,6 +2,7 @@ package org.tensorflow.lite.examples.classification.playservices
 
 import android.content.ContentResolver
 import android.content.ContentValues
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -9,11 +10,15 @@ import android.graphics.Color
 import android.graphics.Matrix
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.provider.MediaStore
 import android.view.View
+import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 
 //no se si tiene mucho sentido el nombre pero bueno
@@ -26,11 +31,7 @@ class ImageHelper {
 
         //Obtengo la orientación de la imagen para dejarla derecha, así solo funciona desde api 24
         val exifInterface = inputStream?.let {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                ExifInterface(it)
-            } else {
-                TODO("VERSION.SDK_INT < N")
-            }
+            ExifInterface(it)
         }
 
         val orientation = exifInterface?.getAttributeInt(
@@ -38,12 +39,11 @@ class ImageHelper {
         )
 
         //Se aplican cambios en la imagen
-        val rotatedBitmap = imageBitmap?.let {
-            configBitmap(
+        return imageBitmap?.let {
+            rotateBitmap(
                 it, orientation ?: ExifInterface.ORIENTATION_NORMAL
             )
         }
-        return rotatedBitmap
     }
 
     private fun getBitmapFromUri(uri: Uri, contentResolver: ContentResolver): Bitmap? {
@@ -63,16 +63,16 @@ class ImageHelper {
         }
     }
 
-    private fun configBitmap(bitmap: Bitmap, orientation: Int): Bitmap {
+    private fun rotateBitmap(bitmap: Bitmap, orientation: Int): Bitmap {
         val matrix = Matrix().apply {
             if (isFrontFacing) postScale(-1f, 1f)
             when (orientation) {
                 ExifInterface.ORIENTATION_NORMAL -> return bitmap
-                ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> this.setScale(-1f, 1f)
-                ExifInterface.ORIENTATION_ROTATE_180 -> this.setRotate(180f)
+                ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> setScale(-1f, 1f)
+                ExifInterface.ORIENTATION_ROTATE_180 -> setRotate(180f)
                 ExifInterface.ORIENTATION_FLIP_VERTICAL -> {
                     setRotate(180f)
-                    this.postScale(-1f, 1f)
+                    postScale(-1f, 1f)
                 }
 
                 ExifInterface.ORIENTATION_TRANSPOSE -> {
@@ -91,10 +91,7 @@ class ImageHelper {
             }
         }
         return try {
-            val oriented =
-                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-            bitmap.recycle()
-            oriented
+            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
         } catch (e: OutOfMemoryError) {
             e.printStackTrace()
             bitmap
@@ -124,40 +121,81 @@ class ImageHelper {
         return returnedBitmap
     }
 
-    suspend fun saveBitmapFile(
-        mBitmap: Bitmap?,
-        contentResolver: ContentResolver
+    suspend fun savePhotoFromBitmap(
+        mBitmap: Bitmap?, contentResolver: ContentResolver
     ): String {
-        var path = ""
-        withContext(Dispatchers.IO) {
-            if (mBitmap != null) {
+        return withContext(Dispatchers.IO) {
+            mBitmap?.let {
                 try {
-                    val contentValues = ContentValues().apply {
-                        put(
-                            MediaStore.MediaColumns.DISPLAY_NAME,
-                            "EquinosApp_" + System.currentTimeMillis() / 1000
-                        )
-                        put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-                        put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/EquinosApp")
-                    }
-                    val uri = contentResolver.insert(
-                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues
-                    )
-
-                    path = uri?.path!!
-
-                    contentResolver.openOutputStream(uri).use { outputStream ->
-                        // Use the outputStream to save your bitmap
-                        if (outputStream != null) {
-                            mBitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
-                        }
-                    }
+                    val uri = getUriForFile(contentResolver)
+                    uri?.let {
+                        saveBitmapWithUri(it, mBitmap, contentResolver)
+                        it.path!!
+                    } ?: ""
                 } catch (e: Exception) {
-                    path = ""
                     e.printStackTrace()
+                    ""
                 }
+            } ?: ""
+        }
+    }
+
+    private fun getUriForFile(contentResolver: ContentResolver): Uri? {
+        val contentValues = ContentValues().apply {
+            put(
+                MediaStore.MediaColumns.DISPLAY_NAME,
+                "EquinosApp_" + System.currentTimeMillis() / 1000
+            )
+            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/EquinosApp")
             }
         }
-        return path
+
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+        } else {
+            val imagesDir =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
+                    .toString() + "/EquinosApp"
+            val file = File(imagesDir)
+            if (!file.exists()) {
+                file.mkdirs()
+            }
+            val imageFile = File(file, "EquinosApp_" + System.currentTimeMillis() / 1000 + ".jpg")
+            Uri.fromFile(imageFile)
+        }
+    }
+
+    private fun saveBitmapWithUri(uri: Uri, bitmap: Bitmap, contentResolver: ContentResolver) {
+        contentResolver.openOutputStream(uri).use { outputStream ->
+            outputStream?.let {
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, it)
+                it.flush()
+                it.close()
+            }
+        }
+    }
+
+    // Función para obtener la uri de un bitmap, guardado temporalmente en un archivo. Es para poder pasar la foto al menú de subida.
+    // No es conveniente pasar bitmaps entre acitividades/fragmentos porque pueden ocasionar problemas si pesan mucho
+    suspend fun getImageUriFromBitmap(
+        context: Context, bitmap: Bitmap
+    ): Uri? {
+        return withContext(Dispatchers.IO) {
+            val tempFile =
+                File(context.cacheDir, "temp_image_" + System.currentTimeMillis() / 1000 + ".jpg")
+            try {
+                FileOutputStream(tempFile).use { outputStream ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                }
+                FileProvider.getUriForFile(
+                    context, context.applicationContext.packageName + ".provider", tempFile
+                )
+            } catch (e: IOException) {
+                e.printStackTrace()
+                null
+            }
+        }
     }
 }

@@ -19,7 +19,12 @@ import java.io.File
 class GalleryFragment : Fragment() {
     private var _binding: FragmentGalleryBinding? = null
     private var imageList = ArrayList<Image>()
-    private val imageViewerIntent by lazy { Intent(requireActivity(), ImageViewerActivity::class.java) }
+    private val imageViewerIntent by lazy {
+        Intent(
+            requireActivity(),
+            ImageViewerActivity::class.java
+        )
+    }
 
     // This property is only valid between onCreateView and onDestroyView.
     private val binding get() = _binding!!
@@ -40,6 +45,15 @@ class GalleryFragment : Fragment() {
         binding.recyclerView.setHasFixedSize(true)
 
         // Fetch images when the fragment is created or resumed
+        viewLifecycleOwner.lifecycleScope.launch {
+            if (isAdded) {
+                getImages()
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
         viewLifecycleOwner.lifecycleScope.launch {
             if (isAdded) {
                 getImages()

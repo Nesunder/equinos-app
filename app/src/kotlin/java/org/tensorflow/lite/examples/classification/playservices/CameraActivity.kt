@@ -1,28 +1,31 @@
 package org.tensorflow.lite.examples.classification.playservices
 
 import android.Manifest
+import android.animation.Animator
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
-import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.AspectRatio
+import androidx.camera.core.CameraControl
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -30,24 +33,32 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityCameraBinding
-import org.tensorflow.lite.support.label.Category
+import org.tensorflow.lite.examples.classification.playservices.photoUpload.PhotoUploadFragment
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
+import android.animation.AnimatorSet
+import android.app.Dialog
+import android.view.animation.AccelerateDecelerateInterpolator
 
 /** Activity that displays the camera and performs object detection on the incoming frames */
 class CameraActivity : AppCompatActivity() {
 
+    private lateinit var imageAnalysis: ImageAnalysis
+    private var uri: Uri? = null
+    private var predictionResult: String = ""
     private lateinit var preview: Preview
     private lateinit var cameraProvider: ProcessCameraProvider
     private lateinit var activityCameraBinding: ActivityCameraBinding
-
     private lateinit var bitmapBuffer: Bitmap
+    private lateinit var cameraControl: CameraControl
+    private val customProgressDialog: Dialog by lazy {
+        Dialog(this@CameraActivity)
+    }
 
     private val executor = Executors.newSingleThreadExecutor()
 
@@ -61,8 +72,7 @@ class CameraActivity : AppCompatActivity() {
 
     private val pickIntent by lazy {
         Intent(
-            Intent.ACTION_PICK,
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         )
     }
 
@@ -84,26 +94,20 @@ class CameraActivity : AppCompatActivity() {
 
     private val openGalleryLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK && result.data != null && result.data?.data != null) {
+            if (imageRetrievedCorrectly(result)) {
+                showProgressDialog()
                 if (!pauseAnalysis) pauseAnalysis = true
-                //Acá se podría abrir una actividad nueva que tenga una interfaz más dedidcada a la clasificación de una imagen cargada, con la posibilidad de guardar,
-                // reemplazar la imagen, subirla al repo
-                val uri = result.data?.data!!
-                var imageBitmap: Bitmap? = null
+                uri = result.data?.data!!
+                var imageBitmap: Bitmap?
                 lifecycleScope.launch {
                     imageBitmap = withContext(Dispatchers.IO) {
-                        imageHelper.getBitmap(uri, contentResolver)
+                        imageHelper.getBitmap(uri!!, contentResolver)
                     }
 
-                    activityCameraBinding.imagePredicted.setImageBitmap(imageBitmap)
-
-                    val recognition = classifier?.classifyImageManualProcessing(
-                        imageBitmap!!
-                    )
-
-                    reportRecognition(recognition)
+                    imageBitmap?.let { classifyAndSetPredictedImage(it) }
                     setPredictedView()
                     bindCameraUseCases()
+                    cancelProgressDialog()
                 }
 
             } else {
@@ -113,18 +117,22 @@ class CameraActivity : AppCompatActivity() {
             }
         }
 
+    private fun imageRetrievedCorrectly(result: ActivityResult): Boolean {
+        return result.resultCode == RESULT_OK && result.data != null && result.data?.data != null
+    }
+
     private fun setPredictedView() {
         activityCameraBinding.imagePredicted.visibility = View.VISIBLE
         activityCameraBinding.viewFinder.visibility = View.GONE
         activityCameraBinding.saveButton?.visibility = View.VISIBLE
-        activityCameraBinding.shareBtn?.visibility = View.VISIBLE
+        activityCameraBinding.uploadBtn?.visibility = View.VISIBLE
     }
 
     private fun setAnalysisView() {
         activityCameraBinding.imagePredicted.visibility = View.GONE
         activityCameraBinding.viewFinder.visibility = View.VISIBLE
         activityCameraBinding.saveButton?.visibility = View.GONE
-        activityCameraBinding.shareBtn?.visibility = View.GONE
+        activityCameraBinding.uploadBtn?.visibility = View.GONE
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -159,19 +167,32 @@ class CameraActivity : AppCompatActivity() {
             } else {
                 // Otherwise, pause image analysis and freeze image
                 pauseAnalysis = true
+
+                // Capture bitmap from PreviewView
+                val unpredictedImage = activityCameraBinding.viewFinder.bitmap
+                if (unpredictedImage == null) {
+                    it.isEnabled = true
+                    return@setOnClickListener
+                }
+
                 val matrix = Matrix().apply {
-                    postRotate(imageRotationDegrees.toFloat())
                     if (isFrontFacing) postScale(-1f, 1f)
                 }
-                val uprightImage = Bitmap.createBitmap(
-                    bitmapBuffer, 0, 0, bitmapBuffer.width, bitmapBuffer.height, matrix, true
+                val correctedImage = Bitmap.createBitmap(
+                    unpredictedImage, 0, 0, unpredictedImage.width, unpredictedImage.height, matrix, true
                 )
-                activityCameraBinding.imagePredicted.setImageBitmap(uprightImage)
+
+                classifyAndSetPredictedImage(correctedImage)
                 activityCameraBinding.imagePredicted.visibility = View.VISIBLE
                 activityCameraBinding.saveButton?.visibility = View.VISIBLE
-                activityCameraBinding.shareBtn?.visibility = View.VISIBLE
-            }
+                activityCameraBinding.uploadBtn?.visibility = View.VISIBLE
 
+                lifecycleScope.launch {
+                    uri = imageHelper.getImageUriFromBitmap(
+                        this@CameraActivity, correctedImage
+                    )
+                }
+            }
             // Re-enable camera controls
             it.isEnabled = true
         }
@@ -182,8 +203,25 @@ class CameraActivity : AppCompatActivity() {
             }
         }
 
-        activityCameraBinding.shareBtn?.setOnClickListener {
-            showRepositoryFormDialog()
+        activityCameraBinding.uploadBtn?.setOnClickListener {
+            if (uri != null) {
+                showRepositoryFormDialog()
+            }
+        }
+
+        activityCameraBinding.viewFinder.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                val meteringPointFactory = activityCameraBinding.viewFinder.meteringPointFactory
+                val meteringPoint = meteringPointFactory.createPoint(event.x, event.y)
+                val focusAction = FocusMeteringAction.Builder(meteringPoint).build()
+                v.performClick()
+                // Show animation
+                showFocusAnimation(event.x, event.y)
+
+                // Perform focus action
+                cameraControl.startFocusAndMetering(focusAction)
+            }
+            return@setOnTouchListener true
         }
     }
 
@@ -204,53 +242,32 @@ class CameraActivity : AppCompatActivity() {
         openGalleryLauncher.launch(pickIntent)
     }
 
-    private fun saveClassifiedPhoto() {
-        lifecycleScope.launch {
+    private suspend fun saveClassifiedPhoto() {
+        showProgressDialog()
+        val path = imageHelper.savePhotoFromBitmap(
+            imageHelper.getBitmapFromView(
+                activityCameraBinding.flPreviewViewContainer!!
+            ), contentResolver
+        )
 
-            val path = imageHelper.saveBitmapFile(
-                imageHelper.getBitmapFromView(
-                    activityCameraBinding.flPreviewViewContainer!!
-                ),
-                contentResolver
-            )
-
-            //cancelProgressDialog()
-            if (path.isNotEmpty()) {
-                Toast.makeText(
-                    this@CameraActivity,
-                    "Archivo guardado: $path",
-                    Toast.LENGTH_SHORT
-                ).show()
-                //shareFile(path)
-            } else {
-                Toast.makeText(
-                    this@CameraActivity,
-                    "Error al guardar el archivo",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+        cancelProgressDialog()
+        if (path.isNotEmpty()) {
+            Toast.makeText(
+                this@CameraActivity, "Archivo guardado: $path", Toast.LENGTH_SHORT
+            ).show()
+            //shareFile(path)
+        } else {
+            Toast.makeText(
+                this@CameraActivity, "Error al guardar el archivo", Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
     private fun showRepositoryFormDialog() {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.horse_data_form, null)
-        val builder = AlertDialog.Builder(this)
-            .setView(dialogView)
-        val alertDialog = builder.show()
-
-        val cancelButton: Button = dialogView.findViewById(R.id.cancelButton)
-        val confirmButton: Button = dialogView.findViewById(R.id.confirmButton)
-
-        cancelButton.setOnClickListener {
-            alertDialog.dismiss()
-        }
-
-        confirmButton.setOnClickListener {
-            val name = dialogView.findViewById<TextInputEditText>(R.id.nameField).text.toString()
-            Log.d(TAG, "Nombre: $name")
-
-        }
-
+        val newFragment = PhotoUploadFragment.newInstance(
+            predictionResult, uri!!
+        )
+        newFragment.show(supportFragmentManager, "fragment_photo_upload")
     }
 
     /** Declare and bind preview and analysis use cases */
@@ -269,7 +286,7 @@ class CameraActivity : AppCompatActivity() {
                     .setTargetRotation(activityCameraBinding.viewFinder.display.rotation).build()
 
                 // Set up the image analysis use case which will process frames in real time
-                val imageAnalysis =
+                imageAnalysis =
                     ImageAnalysis.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9)
                         .setTargetRotation(activityCameraBinding.viewFinder.display.rotation)
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
@@ -297,10 +314,13 @@ class CameraActivity : AppCompatActivity() {
                     // Copy out RGB bits to our shared buffer
                     image.use { bitmapBuffer.copyPixelsFromBuffer(image.planes[0].buffer) }
 
-                    val categories =
-                        classifier?.classifyImageManualProcessing(bitmapBuffer)
+                    val categories = classifier?.classifyImageManualProcessing(bitmapBuffer)
 
                     reportRecognition(categories)
+
+                    if (!categories.isNullOrEmpty()) {
+                        predictionResult = categories[0].title
+                    }
 
                     // Compute the FPS of the entire pipeline
                     val frameCount = 10
@@ -319,10 +339,11 @@ class CameraActivity : AppCompatActivity() {
 
                 // Apply declared configs to CameraX using the same lifecycle owner
                 cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(
+                val camera = cameraProvider.bindToLifecycle(
                     this as LifecycleOwner, cameraSelector, preview, imageAnalysis
                 )
 
+                cameraControl = camera.cameraControl
                 // Use the camera object to link our preview use case with the view
                 preview.setSurfaceProvider(activityCameraBinding.viewFinder.surfaceProvider)
             }, ContextCompat.getMainExecutor(this)
@@ -330,8 +351,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun <T> reportItems(
-        items: List<T>?,
-        formatItem: (T) -> String
+        items: List<T>?, formatItem: (T) -> String
     ) = activityCameraBinding.viewFinder.post {
 
         if (items == null || items.size < MAX_REPORT) {
@@ -355,11 +375,15 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
-    private fun reportCategories(
-        categories: List<Category>?
-    ) {
-        reportItems(categories) { category ->
-            "${"%.2f".format(category.score)} ${category.label}"
+    private fun classifyAndSetPredictedImage(bitmap: Bitmap) {
+        activityCameraBinding.imagePredicted.setImageBitmap(bitmap)
+
+        // Perform classification on the captured image
+        val categories = classifier?.classifyImageManualProcessing(bitmap)
+        reportRecognition(categories)
+
+        if (!categories.isNullOrEmpty()) {
+            predictionResult = categories[0].title
         }
     }
 
@@ -374,6 +398,45 @@ class CameraActivity : AppCompatActivity() {
         } else {
             bindCameraUseCases()
         }
+    }
+
+    private fun showFocusAnimation(x: Float, y: Float) {
+        val focusView = activityCameraBinding.focusView!!
+        focusView.x = x - focusView.width / 2
+        focusView.y = y - focusView.height / 2
+        focusView.visibility = View.VISIBLE
+
+        val scaleX = ObjectAnimator.ofFloat(focusView.x, "scaleX", 1.5f, 1.0f)
+        val scaleY = ObjectAnimator.ofFloat(focusView.y, "scaleY", 1.5f, 1.0f)
+        val alpha = ObjectAnimator.ofFloat(focusView.visibility, "alpha", 0.8f, 0.0f)
+
+        val animatorSet = AnimatorSet().apply {
+            playTogether(scaleX, scaleY, alpha)
+            duration = 300
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+
+        animatorSet.start()
+        animatorSet.addListener(object : Animator.AnimatorListener {
+            override fun onAnimationStart(animation: Animator) {}
+
+            override fun onAnimationEnd(animation: Animator) {
+                focusView.visibility = View.GONE
+            }
+
+            override fun onAnimationCancel(animation: Animator) {}
+
+            override fun onAnimationRepeat(animation: Animator) {}
+        })
+    }
+
+    private fun showProgressDialog() {
+        customProgressDialog.setContentView(R.layout.dialog_custom_progress)
+        customProgressDialog.show()
+    }
+
+    private fun cancelProgressDialog() {
+        customProgressDialog.dismiss()
     }
 
     override fun onRequestPermissionsResult(

@@ -31,15 +31,6 @@
         <item name="cornerSize">10%</item>
     </style>
 
-    <style name="Theme.MyApplication.RoundedAlertDialog" parent="Theme.MaterialComponents">
-        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.RoundedDialog</item>
-    </style>
-
-    <style name="ShapeAppearanceOverlay.RoundedDialog" parent="Theme.MaterialComponents">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">8dp</item>
-    </style>
-
     <style name="CustomTextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
         <item name="colorControlActivated">@color/colorPrimary</item>
     </style>

@@ -1,6 +1,7 @@
 package org.tensorflow.lite.examples.classification.playservices
 
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
@@ -10,15 +11,13 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
-import android.widget.Button
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -27,12 +26,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityImageClassificationBinding
-import org.tensorflow.lite.support.label.Category
+import org.tensorflow.lite.examples.classification.playservices.photoUpload.PhotoUploadFragment
 
 
 class ImageClassificationActivity : AppCompatActivity() {
 
-
+    private var classifiedBitmap: Bitmap? = null
+    private var result: String = ""
     private lateinit var imageClassificationBinding: ActivityImageClassificationBinding
     private var uri: Uri? = null
     private var classifier: ImageClassificationHelper? = null
@@ -48,13 +48,21 @@ class ImageClassificationActivity : AppCompatActivity() {
         )
     }
 
+    private val customProgressDialog: Dialog by lazy {
+        Dialog(this@ImageClassificationActivity)
+    }
+
     private val openGalleryLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK && result.data != null && result.data?.data != null) {
+            if (imageRetrievedCorrectly(result)) {
                 uri = result.data?.data!!
                 uri?.let { setImage(it) }
             }
         }
+
+    private fun imageRetrievedCorrectly(result: ActivityResult): Boolean {
+        return result.resultCode == RESULT_OK && result.data != null && result.data?.data != null
+    }
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,8 +102,10 @@ class ImageClassificationActivity : AppCompatActivity() {
             uri?.let { setImage(it) }
         }
 
-        imageClassificationBinding.shareBtn.setOnClickListener {
-            showRepositoryFormDialog()
+        imageClassificationBinding.uploadBtn.setOnClickListener {
+            if (uri != null) {
+                showRepositoryFormDialog()
+            }
         }
 
         imageClassificationBinding.galleryBtn.setOnTouchListener { v, event ->
@@ -107,12 +117,11 @@ class ImageClassificationActivity : AppCompatActivity() {
         imageClassificationBinding.reloadBtn.setOnTouchListener { v, event ->
             return@setOnTouchListener buttonAnimation(v, event)
         }
-        imageClassificationBinding.shareBtn.setOnTouchListener { v, event ->
+        imageClassificationBinding.uploadBtn.setOnTouchListener { v, event ->
             return@setOnTouchListener buttonAnimation(v, event)
         }
 
     }
-
 
     private fun buttonAnimation(v: View, event: MotionEvent): Boolean {
         when (event.action) {
@@ -146,39 +155,31 @@ class ImageClassificationActivity : AppCompatActivity() {
     }
 
     private fun setImage(uri: Uri) {
-        var imageBitmap: Bitmap? = null
         lifecycleScope.launch {
-            imageBitmap = withContext(Dispatchers.IO) {
+            showProgressDialog()
+            classifiedBitmap = withContext(Dispatchers.IO) {
                 imageHelper.getBitmap(uri, contentResolver)
             }
-            imageClassificationBinding.imagePredicted.setImageBitmap(imageBitmap)
+            imageClassificationBinding.imagePredicted.setImageBitmap(classifiedBitmap)
 
             // Método que funciona bien
-            val recognitions = classifier?.classifyImageManualProcessing(
-                imageBitmap!!
+            val categories = classifier?.classifyImageManualProcessing(
+                classifiedBitmap!!
             )
-            reportRecognition(recognitions)
+            reportRecognition(categories)
+            cancelProgressDialog()
+            if (!categories.isNullOrEmpty()) {
+                result = categories[0].title
+            }
         }
-        // Para clasificar con el otro método
-        /*
-        val categories = classifier?.classifyWithMetadata(
-        imageBitmap!!, imageClassificationBinding.imagePredicted.rotation.toInt()
-        )
-        reportCategories(categories)
-        */
     }
 
     private fun showRepositoryFormDialog() {
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.horse_data_form, null)
-        val builder = AlertDialog.Builder(this)
-            .setView(dialogView)
-        val alertDialog = builder.show()
-
-        val cancelButton: Button = dialogView.findViewById(R.id.cancelButton)
-
-        cancelButton.setOnClickListener {
-            alertDialog.dismiss()
-        }
+        val newFragment = PhotoUploadFragment.newInstance(
+            result,
+            uri!!
+        )
+        newFragment.show(supportFragmentManager, "fragment_photo_upload")
     }
 
     private fun <T> reportItems(
@@ -207,25 +208,17 @@ class ImageClassificationActivity : AppCompatActivity() {
         }
     }
 
-    private fun reportCategories(
-        categories: List<Category>?
-    ) {
-        reportItems(categories) { category ->
-            "${"%.2f".format(category.score)} ${category.label}"
-        }
-    }
-
     private fun saveClassifiedPhoto() {
         lifecycleScope.launch {
-
-            val path = imageHelper.saveBitmapFile(
+            showProgressDialog()
+            val path = imageHelper.savePhotoFromBitmap(
                 imageHelper.getBitmapFromView(
                     imageClassificationBinding.flPreviewViewContainer
                 ),
                 contentResolver
             )
 
-            //cancelProgressDialog()
+            cancelProgressDialog()
             if (path.isNotEmpty()) {
                 Toast.makeText(
                     this@ImageClassificationActivity,
@@ -241,6 +234,15 @@ class ImageClassificationActivity : AppCompatActivity() {
                 ).show()
             }
         }
+    }
+
+    private fun showProgressDialog() {
+        customProgressDialog.setContentView(R.layout.dialog_custom_progress)
+        customProgressDialog.show()
+    }
+
+    private fun cancelProgressDialog() {
+        customProgressDialog.dismiss()
     }
 
     companion object {
