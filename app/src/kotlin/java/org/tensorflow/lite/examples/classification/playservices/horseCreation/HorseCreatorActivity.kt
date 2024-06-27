@@ -1,6 +1,7 @@
 package org.tensorflow.lite.examples.classification.playservices.horseCreation
 
 import android.app.DatePickerDialog
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -46,8 +47,10 @@ class HorseCreatorActivity : AppCompatActivity() {
     }
     private lateinit var horseCreatorBinding: ActivityHorseCreationBinding
     private lateinit var viewModel: MainViewModel
-
     private lateinit var imageUri: Uri
+    private val customProgressDialog: Dialog by lazy {
+        Dialog(this@HorseCreatorActivity)
+    }
 
     private val openGalleryLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -106,17 +109,13 @@ class HorseCreatorActivity : AppCompatActivity() {
             }
 
         horseCreatorBinding.confirmButton.setOnClickListener {
+            showProgressDialog()
             val nameInput = horseCreatorBinding.editNombreInput.text.toString()
             val observationsInput = horseCreatorBinding.editObservacionesInput.text.toString()
             val trained = horseCreatorBinding.checkboxEntrenado.isChecked
             val withPain = horseCreatorBinding.checkboxDolor.isChecked
             val stabling = horseCreatorBinding.checkboxEstabulacion.isChecked
             val piquete = horseCreatorBinding.checkboxSalidaAPiquete.isChecked
-
-            if (imageSelected) {
-                newHorseItem.text = nameInput   // Esto no entiendo que es
-                viewModel.addItem(newHorseItem)
-            }
 
             val caballoJson = buildCaballoJson(
                 nameInput,
@@ -127,16 +126,19 @@ class HorseCreatorActivity : AppCompatActivity() {
                 withPain,
                 observationsInput
             )
-
-            val inputStream: InputStream? = contentResolver.openInputStream(imageUri)
-            val bytes: ByteArray? = inputStream?.readBytes()
-            lifecycleScope.launch {
-                val validationState = pushearCaballo(caballoJson, bytes)
-                if (validationState == ValidationState.VALID) {
+            if (imageSelected) {
+                newHorseItem.text = nameInput
+                viewModel.addItem(newHorseItem)
+                val inputStream: InputStream? = contentResolver.openInputStream(imageUri)
+                val bytes: ByteArray? = inputStream?.readBytes()
+                lifecycleScope.launch {
+                    val validationState = pushearCaballo(caballoJson, bytes)
+                    cancelProgressDialog()
+                    if (validationState == ValidationState.INVALID) finish()
                     showDialog(this@HorseCreatorActivity)
-                } else {
-                    finish()
                 }
+            } else {
+                cancelProgressDialog()
             }
         }
     }
@@ -199,7 +201,7 @@ class HorseCreatorActivity : AppCompatActivity() {
 
         json.put("nombre", nombre)
         json.put("sexo", sexo)
-        json.put("fechaNacimiento", "2022-01-01") // TODO remover constante y usar la que cargue el usuario
+        json.put("fechaNacimiento", "2022-01-01")
         json.put("entrenamiento", entrenamiento)
         json.put("estabulacion", estabulacion)
         json.put("salidaAPiquete", salidaAPiquete)
@@ -266,5 +268,14 @@ class HorseCreatorActivity : AppCompatActivity() {
         // calling show to display our date picker dialog.
         datePickerDialog.show()
         return dateValue
+    }
+
+    private fun showProgressDialog() {
+        customProgressDialog.setContentView(R.layout.dialog_custom_progress)
+        customProgressDialog.show()
+    }
+
+    private fun cancelProgressDialog() {
+        customProgressDialog.dismiss()
     }
 }

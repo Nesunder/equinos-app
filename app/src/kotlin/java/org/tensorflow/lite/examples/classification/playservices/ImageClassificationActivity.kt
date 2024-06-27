@@ -1,6 +1,7 @@
 package org.tensorflow.lite.examples.classification.playservices
 
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
@@ -26,7 +27,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityImageClassificationBinding
 import org.tensorflow.lite.examples.classification.playservices.photoUpload.PhotoUploadFragment
-import org.tensorflow.lite.support.label.Category
 
 
 class ImageClassificationActivity : AppCompatActivity() {
@@ -46,6 +46,10 @@ class ImageClassificationActivity : AppCompatActivity() {
             Intent.ACTION_PICK,
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         )
+    }
+
+    private val customProgressDialog: Dialog by lazy {
+        Dialog(this@ImageClassificationActivity)
     }
 
     private val openGalleryLauncher: ActivityResultLauncher<Intent> =
@@ -152,6 +156,7 @@ class ImageClassificationActivity : AppCompatActivity() {
 
     private fun setImage(uri: Uri) {
         lifecycleScope.launch {
+            showProgressDialog()
             classifiedBitmap = withContext(Dispatchers.IO) {
                 imageHelper.getBitmap(uri, contentResolver)
             }
@@ -162,18 +167,11 @@ class ImageClassificationActivity : AppCompatActivity() {
                 classifiedBitmap!!
             )
             reportRecognition(categories)
-
+            cancelProgressDialog()
             if (!categories.isNullOrEmpty()) {
                 result = categories[0].title
             }
         }
-        // Para clasificar con el otro método
-        /*
-        val categories = classifier?.classifyWithMetadata(
-        imageBitmap!!, imageClassificationBinding.imagePredicted.rotation.toInt()
-        )
-        reportCategories(categories)
-        */
     }
 
     private fun showRepositoryFormDialog() {
@@ -210,16 +208,9 @@ class ImageClassificationActivity : AppCompatActivity() {
         }
     }
 
-    private fun reportCategories(
-        categories: List<Category>?
-    ) {
-        reportItems(categories) { category ->
-            "${"%.2f".format(category.score)} ${category.label}"
-        }
-    }
-
     private fun saveClassifiedPhoto() {
         lifecycleScope.launch {
+            showProgressDialog()
             val path = imageHelper.savePhotoFromBitmap(
                 imageHelper.getBitmapFromView(
                     imageClassificationBinding.flPreviewViewContainer
@@ -227,7 +218,7 @@ class ImageClassificationActivity : AppCompatActivity() {
                 contentResolver
             )
 
-            //cancelProgressDialog()
+            cancelProgressDialog()
             if (path.isNotEmpty()) {
                 Toast.makeText(
                     this@ImageClassificationActivity,
@@ -243,6 +234,15 @@ class ImageClassificationActivity : AppCompatActivity() {
                 ).show()
             }
         }
+    }
+
+    private fun showProgressDialog() {
+        customProgressDialog.setContentView(R.layout.dialog_custom_progress)
+        customProgressDialog.show()
+    }
+
+    private fun cancelProgressDialog() {
+        customProgressDialog.dismiss()
     }
 
     companion object {

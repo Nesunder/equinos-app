@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Image Classification</string>
     <string name="capture_button_alt">Capture</string>
     <string name="unknown">UNKNOWN</string>
@@ -58,6 +58,7 @@
     <string name="subir_imagen">Subir imagen</string>
     <string name="caballo_seleccionado">Caballo seleccionado</string>
     <string name="fecha_de_nacimiento">Fecha de nacimiento</string>
+    <string name="por_favor_espere" tools:ignore="Typos">Un momento,\npor favor…</string>
     <string-array name="sexo_array">
         <item>Masculino</item>
         <item>Femenino</item>

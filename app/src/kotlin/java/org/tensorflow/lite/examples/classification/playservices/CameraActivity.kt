@@ -42,6 +42,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 import android.animation.AnimatorSet
+import android.app.Dialog
 import android.view.animation.AccelerateDecelerateInterpolator
 
 /** Activity that displays the camera and performs object detection on the incoming frames */
@@ -55,6 +56,9 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var activityCameraBinding: ActivityCameraBinding
     private lateinit var bitmapBuffer: Bitmap
     private lateinit var cameraControl: CameraControl
+    private val customProgressDialog: Dialog by lazy {
+        Dialog(this@CameraActivity)
+    }
 
     private val executor = Executors.newSingleThreadExecutor()
 
@@ -91,6 +95,7 @@ class CameraActivity : AppCompatActivity() {
     private val openGalleryLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (imageRetrievedCorrectly(result)) {
+                showProgressDialog()
                 if (!pauseAnalysis) pauseAnalysis = true
                 uri = result.data?.data!!
                 var imageBitmap: Bitmap?
@@ -102,6 +107,7 @@ class CameraActivity : AppCompatActivity() {
                     imageBitmap?.let { classifyAndSetPredictedImage(it) }
                     setPredictedView()
                     bindCameraUseCases()
+                    cancelProgressDialog()
                 }
 
             } else {
@@ -236,26 +242,24 @@ class CameraActivity : AppCompatActivity() {
         openGalleryLauncher.launch(pickIntent)
     }
 
-    private fun saveClassifiedPhoto() {
-        lifecycleScope.launch {
+    private suspend fun saveClassifiedPhoto() {
+        showProgressDialog()
+        val path = imageHelper.savePhotoFromBitmap(
+            imageHelper.getBitmapFromView(
+                activityCameraBinding.flPreviewViewContainer!!
+            ), contentResolver
+        )
 
-            val path = imageHelper.savePhotoFromBitmap(
-                imageHelper.getBitmapFromView(
-                    activityCameraBinding.flPreviewViewContainer!!
-                ), contentResolver
-            )
-
-            //cancelProgressDialog()
-            if (path.isNotEmpty()) {
-                Toast.makeText(
-                    this@CameraActivity, "Archivo guardado: $path", Toast.LENGTH_SHORT
-                ).show()
-                //shareFile(path)
-            } else {
-                Toast.makeText(
-                    this@CameraActivity, "Error al guardar el archivo", Toast.LENGTH_SHORT
-                ).show()
-            }
+        cancelProgressDialog()
+        if (path.isNotEmpty()) {
+            Toast.makeText(
+                this@CameraActivity, "Archivo guardado: $path", Toast.LENGTH_SHORT
+            ).show()
+            //shareFile(path)
+        } else {
+            Toast.makeText(
+                this@CameraActivity, "Error al guardar el archivo", Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -424,6 +428,15 @@ class CameraActivity : AppCompatActivity() {
 
             override fun onAnimationRepeat(animation: Animator) {}
         })
+    }
+
+    private fun showProgressDialog() {
+        customProgressDialog.setContentView(R.layout.dialog_custom_progress)
+        customProgressDialog.show()
+    }
+
+    private fun cancelProgressDialog() {
+        customProgressDialog.dismiss()
     }
 
     override fun onRequestPermissionsResult(
