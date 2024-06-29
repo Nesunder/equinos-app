@@ -48,6 +48,7 @@ class HorseCreatorActivity : AppCompatActivity() {
     private lateinit var horseCreatorBinding: ActivityHorseCreationBinding
     private lateinit var viewModel: MainViewModel
     private lateinit var imageUri: Uri
+    private var dateInput: String = ""
     private val customProgressDialog: Dialog by lazy {
         Dialog(this@HorseCreatorActivity)
     }
@@ -86,13 +87,11 @@ class HorseCreatorActivity : AppCompatActivity() {
             finish()
         }
 
-        //usar esto para mandar la fecha
-        var dateInput = ""
         horseCreatorBinding.editFechaNacimientoInput.setOnClickListener {
-            dateInput = setDate()
+            setDate()
         }
 
-        var sex = "Masculino"  // DEBERIA SER UN ENUM AQUI TAMBIEN QUIZAS
+        var sex = "Masculino"
 
         // Listener para obtener el valor del spinner
         horseCreatorBinding.spinnerSexo.onItemSelectedListener =
@@ -124,7 +123,8 @@ class HorseCreatorActivity : AppCompatActivity() {
                 stabling,
                 piquete,
                 withPain,
-                observationsInput
+                observationsInput,
+                dateInput
             )
             if (imageSelected) {
                 newHorseItem.text = nameInput
@@ -195,13 +195,14 @@ class HorseCreatorActivity : AppCompatActivity() {
         estabulacion: Boolean,
         salidaAPiquete: Boolean,
         dolor: Boolean,
-        observaciones: String
+        observaciones: String,
+        fechaNacimiento: String
     ): JSONObject {
         val json = JSONObject()
 
         json.put("nombre", nombre)
         json.put("sexo", sexo)
-        json.put("fechaNacimiento", "2022-01-01")
+        json.put("fechaNacimiento", fechaNacimiento)
         json.put("entrenamiento", entrenamiento)
         json.put("estabulacion", estabulacion)
         json.put("salidaAPiquete", salidaAPiquete)
@@ -245,8 +246,7 @@ class HorseCreatorActivity : AppCompatActivity() {
             }.show()
     }
 
-    private fun setDate(): String {
-        var dateValue = ""
+    private fun setDate() {
         val c = Calendar.getInstance()
 
         val year = c.get(Calendar.YEAR)
@@ -254,20 +254,14 @@ class HorseCreatorActivity : AppCompatActivity() {
         val day = c.get(Calendar.DAY_OF_MONTH)
 
         val datePickerDialog = DatePickerDialog(
-            // passing context.
             this, { _, pickerYear, monthOfYear, dayOfMonth ->
-                // setting date to the edit text
-                val displayDate =
-                    (dayOfMonth.toString() + "/" + (monthOfYear + 1) + "/" + pickerYear)
-                dateValue = (dayOfMonth.toString() + "-" + (monthOfYear + 1) + "-" + pickerYear)
+                val displayDate = "$dayOfMonth/${monthOfYear + 1}/$pickerYear"
+                dateInput = "$dayOfMonth-${monthOfYear + 1}-$pickerYear"
                 horseCreatorBinding.editFechaNacimientoInput.setText(displayDate)
             },
-            // passing year, month and day for the selected date in our date picker.
             year, month, day
         )
-        // calling show to display our date picker dialog.
         datePickerDialog.show()
-        return dateValue
     }
 
     private fun showProgressDialog() {
