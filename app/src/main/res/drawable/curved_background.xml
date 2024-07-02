@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Top rectangle -->
+    <item
+        android:bottom="150dp"
+        android:left="0dp"
+        android:right="0dp"
+        android:top="0dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/colorAccent" /> <!-- Use theme color -->
+        </shape>
+    </item>
+
+    <!-- Curved top section -->
+    <item android:top="200dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="@color/background_color"
+                android:startColor="@color/background_color" />
+
+            <corners
+                android:topLeftRadius="100dp"
+                android:topRightRadius="100dp" />
+        </shape>
+    </item>
+
+</layer-list>
