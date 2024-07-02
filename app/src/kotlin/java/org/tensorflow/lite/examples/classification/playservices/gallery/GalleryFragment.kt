@@ -43,13 +43,6 @@ class GalleryFragment : Fragment() {
 
         binding.recyclerView.layoutManager = LinearLayoutManager(requireActivity())
         binding.recyclerView.setHasFixedSize(true)
-
-        // Fetch images when the fragment is created or resumed
-        viewLifecycleOwner.lifecycleScope.launch {
-            if (isAdded) {
-                getImages()
-            }
-        }
     }
 
     override fun onResume() {

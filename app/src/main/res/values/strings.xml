@@ -8,12 +8,11 @@
     <string name="title_home">Home</string>
     <string name="title_galeria">Galería</string>
     <string name="profile_title">Perfil</string>
-    <string name="settings_title">Configuración</string>
+    <string name="settings_title">Menu</string>
     <string name="abrir_camara">Abrir cámara</string>
     <string name="imagen_seleccionada">Imagen seleccionada de la galería</string>
     <string name="boton_compartir">Botón de compartir</string>
     <string name="boton_eliminar">Botón eliminar</string>
-    <string name="settings_fragment">Settings fragment</string>
     <string name="profile_fragment">Profile fragment</string>
     <string name="repositorio_imagenes">Repositorio de imágenes</string>
     <string name="imagen_clasificada">Imagen clasificada</string>
@@ -59,6 +58,21 @@
     <string name="caballo_seleccionado">Caballo seleccionado</string>
     <string name="fecha_de_nacimiento">Fecha de nacimiento</string>
     <string name="por_favor_espere" tools:ignore="Typos">Un momento,\npor favor…</string>
+    <string name="perfil">Perfil</string>
+    <string name="boton_para_volver_atras">Botón para volver atrás</string>
+    <string name="flecha_de_acceso">Flecha de acceso</string>
+    <string name="boton_notificaciones">Botón notificaciones</string>
+    <string name="work_in_progess">Work in progess…</string>
+    <string name="pedrito_sanchez">Pedrito Sanchez</string>
+    <string name="veterinario">Veterinario</string>
+    <string name="pedritosan_gmail_com">pedritosan@gmail.com</string>
+    <string name="compartir">Compartir</string>
+    <string name="boton_notas">Botón notas</string>
+    <string name="configuracion">Configuración</string>
+    <string name="boton_configuracion">Botón configuración</string>
+    <string name="desloguearse">Desloguearse</string>
+    <string name="boton_para_desloguearse">Botón para desloguearse</string>
+    <string name="notas">Notas</string>
     <string-array name="sexo_array">
         <item>Masculino</item>
         <item>Femenino</item>

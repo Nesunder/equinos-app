@@ -156,7 +156,7 @@
                 android:layout_height="60dp"
                 android:layout_gravity="center"
                 android:layout_marginBottom="10dp"
-                android:backgroundTint="@color/button_background"
+                android:backgroundTint="@color/background_color"
                 android:text="@string/crear_cuenta"
                 android:textColor="@color/colorPrimary"
                 app:cornerRadius="16dp"
