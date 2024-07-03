@@ -12,9 +12,12 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.launch
 import org.tensorflow.lite.examples.classification.playservices.R
+import org.tensorflow.lite.examples.classification.playservices.appRepository.DataRepository
 import org.tensorflow.lite.examples.classification.playservices.appRepository.MainViewModel
 import org.tensorflow.lite.examples.classification.playservices.databinding.FragmentPhotoUploadBinding
 import org.tensorflow.lite.examples.classification.playservices.horseCreation.HorseItem
@@ -109,7 +112,13 @@ class PhotoUploadFragment : DialogFragment() {
         }
 
         binding.toggleButton.setOnClickListener {
-            toggleDropdown()
+            lifecycleScope.launch {
+                val initialData = context?.let { it1 -> DataRepository.loadInitialData(it1) }
+                if (initialData != null) {
+                    DataRepository.updateData(initialData)
+                }
+                toggleDropdown()
+            }
         }
 
         val cancelButton: Button = view.findViewById(R.id.cancelButton)
