@@ -73,6 +73,8 @@
     <string name="desloguearse">Desloguearse</string>
     <string name="boton_para_desloguearse">Botón para desloguearse</string>
     <string name="notas">Notas</string>
+    <string name="eliminar_foto_actual">Eliminar foto actual</string>
+    <string name="cambiar_foto">Cambiar foto</string>
     <string-array name="sexo_array">
         <item>Masculino</item>
         <item>Femenino</item>

@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="60dp"
     tools:context=".profile.ProfileFragment">
 
     <View
@@ -22,7 +21,7 @@
 
 
     <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/imageView2"
+        android:id="@+id/profilePhoto"
         android:layout_width="110dp"
         android:layout_height="110dp"
         android:src="@drawable/caballo_inicio"
@@ -31,7 +30,7 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.2"
+        app:layout_constraintVertical_bias="0.17"
         app:shapeAppearanceOverlay="@style/Circular" />
 
     <TextView
@@ -58,7 +57,7 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/imageView2" />
+        app:layout_constraintTop_toBottomOf="@id/profilePhoto" />
 
     <TextView
         android:id="@+id/tvTipoUsuario"
@@ -86,6 +85,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
+        android:layout_marginBottom="70dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -101,6 +101,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
                 android:layout_marginEnd="16dp"
                 app:cardBackgroundColor="@color/card_background"
                 app:cardCornerRadius="28dp"
@@ -382,8 +383,8 @@
                             android:id="@+id/ivLogOut"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:src="@drawable/btn_6"
                             android:contentDescription="@string/boton_para_desloguearse"
+                            android:src="@drawable/btn_6"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent" />
@@ -418,10 +419,122 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </ScrollView>
 
+    <View
+        android:id="@+id/overlayView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/photoCardView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="-20dp"
+        android:backgroundTint="@color/card_alternative"
+        android:elevation="4dp"
+        android:visibility="visible"
+        app:cardCornerRadius="28dp"
+        app:layout_constraintTop_toBottomOf="parent"
+        tools:layout_editor_absoluteX="0dp">
+
+        <!-- Add your CardView content here -->
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="85dp">
+
+            <LinearLayout
+                android:id="@+id/changePhotoLl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:orientation="horizontal"
+                android:padding="8dp"
+                android:layout_marginTop="16dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.1">
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/selectableImage"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="16dp"
+                    android:src="@drawable/caballo_inicio"
+                    app:shapeAppearanceOverlay="@style/Circular" />
+
+                <TextView
+                    android:id="@+id/settingTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="24dp"
+                    android:text="@string/cambiar_foto"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/deletePhotoLl"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:orientation="horizontal"
+                android:padding="8dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/changePhotoLl">
+
+                <ImageButton
+                    android:id="@+id/uploadBtn"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="14dp"
+                    android:background="@drawable/ic_baseline_delete_24"
+                    android:backgroundTint="@color/red"
+                    android:clickable="false"
+                    android:contentDescription="@string/capture_button_alt" />
+
+                <TextView
+                    android:id="@+id/title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="26dp"
+                    android:text="@string/eliminar_foto_actual"
+                    android:textColor="@color/red"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <include
+                android:id="@+id/handle_view"
+                layout="@layout/handle_view"
+                android:layout_width="wrap_content"
+                android:layout_height="4dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/changePhotoLl"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.5"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.cardview.widget.CardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
