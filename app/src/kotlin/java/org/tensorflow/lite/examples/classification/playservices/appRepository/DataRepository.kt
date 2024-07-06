@@ -67,7 +67,7 @@ object DataRepository {
         return Uri.fromFile(file)
     }
 
-    suspend fun performNetworkOperation(urlString: String): String {
+    private suspend fun performNetworkOperation(urlString: String): String {
         val token = Network.getAccessToken()
         return withContext(Dispatchers.IO) {
             val url = URL(urlString)

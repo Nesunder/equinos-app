@@ -7,9 +7,11 @@
 
     <ImageView
         android:id="@+id/item_image"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_marginEnd="16dp"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginEnd="32dp"
+        android:contentDescription="@string/foto_del_caballo"
+        android:scaleType="centerCrop"
         android:src="@drawable/caballo_inicio" />
 
     <TextView
@@ -17,6 +19,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="Tiro al blanco"
+        android:text="@string/tiro_al_blanco"
         android:textSize="16sp" />
 </LinearLayout>

@@ -21,8 +21,8 @@
         android:label="fragment_profile"
         tools:layout="@layout/fragment_profile" />
     <fragment
-        android:id="@+id/settingsFragment"
-        android:name="org.tensorflow.lite.examples.classification.playservices.settings.SettingsFragment"
-        android:label="fragment_settings"
-        tools:layout="@layout/fragment_settings" />
+        android:id="@+id/horseListFragment"
+        android:name="org.tensorflow.lite.examples.classification.playservices.horseList.HorseListFragment"
+        android:label="fragment_horse_list"
+        tools:layout="@layout/fragment_horse_list" />
 </navigation>
