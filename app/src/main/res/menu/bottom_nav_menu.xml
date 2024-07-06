@@ -16,13 +16,13 @@
     </item>
 
     <item
-        android:id="@+id/profileFragment"
-        android:icon="@drawable/baseline_person_24"
-        android:title="@string/profile_title" />
+        android:id="@+id/horseListFragment"
+        android:icon="@drawable/establo_nav"
+        android:title="@string/establo" />
 
     <item
-        android:id="@+id/settingsFragment"
-        android:icon="@drawable/baseline_settings_24"
+        android:id="@+id/profileFragment"
+        android:icon="@drawable/baseline_menu_24"
         android:title="@string/menu_title" />
 
 </menu>
