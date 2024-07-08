@@ -7,7 +7,7 @@ import java.lang.ref.WeakReference
 
 class Network {
     companion object {
-        const val BASE_URL: String = "https://0eb9-201-235-161-12.ngrok-free.app"
+        const val BASE_URL: String = "https://2b45-201-235-161-12.ngrok-free.app"
 
         private var contextRef: WeakReference<Context>? = null
 
@@ -17,6 +17,10 @@ class Network {
 
         fun setAccessToken(token: String?) {
             saveAccessTokenToPrefs(token)
+        }
+
+        fun setIdUsuario(idUsuario: String?) {
+            saveIdUsuarioToPrefs(idUsuario)
         }
 
         fun getAccessToken(): String? {
@@ -36,6 +40,21 @@ class Network {
                 putString("accessToken", token)
                 apply()
             }
+        }
+
+        private fun saveIdUsuarioToPrefs(idUsuario: String?) {
+            val context = contextRef?.get() ?: return
+            val sharedPreferences = getSharedPreferences(context)
+            with(sharedPreferences.edit()) {
+                putString("idUsuario", idUsuario)
+                apply()
+            }
+        }
+
+        fun getIdUsuario(): String? {
+            val context = contextRef?.get() ?: return null
+            val sharedPreferences = getSharedPreferences(context)
+            return sharedPreferences.getString("idUsuario", "")
         }
 
         private fun clearAccessTokenFromPrefs() {

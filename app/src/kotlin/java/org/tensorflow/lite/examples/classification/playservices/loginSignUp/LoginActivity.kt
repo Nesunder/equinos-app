@@ -13,6 +13,7 @@ import org.tensorflow.lite.examples.classification.playservices.R
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityLoginBinding
 import org.tensorflow.lite.examples.classification.playservices.settings.Network
 import org.tensorflow.lite.examples.classification.playservices.settings.Network.Companion.setAccessToken
+import org.tensorflow.lite.examples.classification.playservices.settings.Network.Companion.setIdUsuario
 
 class LoginActivity : BaseActivity() {
 
@@ -89,6 +90,9 @@ class LoginActivity : BaseActivity() {
             val jsonResponse = JSONObject(response)
             val accessToken = jsonResponse.getString("accessToken")
             setAccessToken(accessToken)
+            val idUsuario = jsonResponse.getString("idUsuario")
+            setIdUsuario(idUsuario)
+
             true
         } catch (e: Exception) {
             e.printStackTrace()
