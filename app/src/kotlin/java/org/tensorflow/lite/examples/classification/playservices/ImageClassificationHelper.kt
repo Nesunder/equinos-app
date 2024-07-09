@@ -290,6 +290,12 @@ class ImageClassificationHelper(
         return inputBuffer
     }
 
+    fun filterRecognitionsByTitle(
+        recognitions: List<Recognition>, title: String
+    ): List<Recognition> {
+        return recognitions.filter { it.title == title }
+    }
+
     companion object {
         private val TAG = ImageClassificationHelper::class.java.simpleName
 

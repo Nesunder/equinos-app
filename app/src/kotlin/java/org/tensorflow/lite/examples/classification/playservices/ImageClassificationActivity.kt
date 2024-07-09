@@ -33,6 +33,9 @@ class ImageClassificationActivity : AppCompatActivity() {
 
     private var classifiedBitmap: Bitmap? = null
     private var result: String = ""
+    private var interesadoValue: Float = 0f
+    private var serenoValue: Float = 0f
+    private var disgustadoValue: Float = 0f
     private lateinit var imageClassificationBinding: ActivityImageClassificationBinding
     private var uri: Uri? = null
     private var classifier: ImageClassificationHelper? = null
@@ -166,18 +169,25 @@ class ImageClassificationActivity : AppCompatActivity() {
             val categories = classifier?.classifyImageManualProcessing(
                 classifiedBitmap!!
             )
-            reportRecognition(categories)
-            cancelProgressDialog()
+
             if (!categories.isNullOrEmpty()) {
-                result = categories[0].title
+                reportRecognition(categories)
+                getPredictionValues(categories)
             }
+            cancelProgressDialog()
         }
+    }
+
+    private fun getPredictionValues(categories: List<ImageClassificationHelper.Recognition>) {
+        result = categories[0].title
+        interesadoValue = classifier!!.filterRecognitionsByTitle(categories, "interesado")[0].confidence
+        serenoValue = classifier!!.filterRecognitionsByTitle(categories, "sereno")[0].confidence
+        disgustadoValue = classifier!!.filterRecognitionsByTitle(categories, "disgustado")[0].confidence
     }
 
     private fun showRepositoryFormDialog() {
         val newFragment = PhotoUploadFragment.newInstance(
-            result,
-            uri!!
+            result, uri!!, interesadoValue, serenoValue, disgustadoValue
         )
         newFragment.show(supportFragmentManager, "fragment_photo_upload")
     }

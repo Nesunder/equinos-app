@@ -20,6 +20,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.InputStream
 
 //no se si tiene mucho sentido el nombre pero bueno
 class ImageHelper {
@@ -197,5 +198,11 @@ class ImageHelper {
                 null
             }
         }
+    }
+
+    fun getByteArrayImage(context: Context, imageUri: Uri): ByteArray? {
+        val contentResolver: ContentResolver = context.contentResolver
+        val inputStream: InputStream? = contentResolver.openInputStream(imageUri)
+        return inputStream?.readBytes()
     }
 }

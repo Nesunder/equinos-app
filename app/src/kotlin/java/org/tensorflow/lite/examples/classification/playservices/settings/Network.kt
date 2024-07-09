@@ -7,7 +7,7 @@ import java.lang.ref.WeakReference
 
 class Network {
     companion object {
-        const val BASE_URL: String = "https://2b45-201-235-161-12.ngrok-free.app"
+        const val BASE_URL: String = "https://fc87-181-168-26-49.ngrok-free.app"
 
         private var contextRef: WeakReference<Context>? = null
 

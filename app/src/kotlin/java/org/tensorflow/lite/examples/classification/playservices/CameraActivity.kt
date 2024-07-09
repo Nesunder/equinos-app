@@ -51,6 +51,9 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var imageAnalysis: ImageAnalysis
     private var uri: Uri? = null
     private var predictionResult: String = ""
+    private var interesadoValue: Float = 0f
+    private var serenoValue: Float = 0f
+    private var disgustadoValue: Float = 0f
     private lateinit var preview: Preview
     private lateinit var cameraProvider: ProcessCameraProvider
     private lateinit var activityCameraBinding: ActivityCameraBinding
@@ -265,7 +268,7 @@ class CameraActivity : AppCompatActivity() {
 
     private fun showRepositoryFormDialog() {
         val newFragment = PhotoUploadFragment.newInstance(
-            predictionResult, uri!!
+            predictionResult, uri!!, interesadoValue, serenoValue, disgustadoValue
         )
         newFragment.show(supportFragmentManager, "fragment_photo_upload")
     }
@@ -319,7 +322,7 @@ class CameraActivity : AppCompatActivity() {
                     reportRecognition(categories)
 
                     if (!categories.isNullOrEmpty()) {
-                        predictionResult = categories[0].title
+                        getPredictionValues(categories)
                     }
 
                     // Compute the FPS of the entire pipeline
@@ -380,11 +383,18 @@ class CameraActivity : AppCompatActivity() {
 
         // Perform classification on the captured image
         val categories = classifier?.classifyImageManualProcessing(bitmap)
-        reportRecognition(categories)
 
         if (!categories.isNullOrEmpty()) {
-            predictionResult = categories[0].title
+            reportRecognition(categories)
+            getPredictionValues(categories)
         }
+    }
+
+    private fun getPredictionValues(categories: List<ImageClassificationHelper.Recognition>) {
+        predictionResult = categories[0].title
+        interesadoValue = classifier!!.filterRecognitionsByTitle(categories, "interesado")[0].confidence
+        serenoValue = classifier!!.filterRecognitionsByTitle(categories, "sereno")[0].confidence
+        disgustadoValue = classifier!!.filterRecognitionsByTitle(categories, "disgustado")[0].confidence
     }
 
     override fun onResume() {

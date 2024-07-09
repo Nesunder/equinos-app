@@ -27,6 +27,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
+import org.tensorflow.lite.examples.classification.playservices.ImageHelper
 import org.tensorflow.lite.examples.classification.playservices.R
 import org.tensorflow.lite.examples.classification.playservices.appRepository.MainViewModel
 import org.tensorflow.lite.examples.classification.playservices.databinding.ActivityHorseCreationBinding
@@ -40,7 +41,7 @@ class HorseCreatorActivity : AppCompatActivity() {
     private var imageSelected: Boolean = false
     private val newHorseItem: HorseItem by lazy {
         HorseItem(
-            "Nuevo caballo", Uri.parse(
+            -1, "Nuevo caballo", Uri.parse(
                 "android.resource://org.tensorflow.lite.examples.classification.playservices/" + R.drawable.caballo_inicio
             )
         )
@@ -52,6 +53,11 @@ class HorseCreatorActivity : AppCompatActivity() {
     private val customProgressDialog: Dialog by lazy {
         Dialog(this@HorseCreatorActivity)
     }
+
+    private val imageHelper: ImageHelper by lazy {
+        ImageHelper()
+    }
+
 
     private val openGalleryLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -127,10 +133,10 @@ class HorseCreatorActivity : AppCompatActivity() {
                 dateInput
             )
             if (imageSelected) {
-                newHorseItem.text = nameInput
+                newHorseItem.name = nameInput
                 viewModel.addItem(newHorseItem)
-                val inputStream: InputStream? = contentResolver.openInputStream(imageUri)
-                val bytes: ByteArray? = inputStream?.readBytes()
+                val bytes: ByteArray? =
+                    imageHelper.getByteArrayImage(this@HorseCreatorActivity, imageUri)
                 lifecycleScope.launch {
                     val validationState = pushearCaballo(caballoJson, bytes)
                     cancelProgressDialog()

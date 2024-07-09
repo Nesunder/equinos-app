@@ -43,10 +43,11 @@ object DataRepository {
         for (i in 0 until jsonResponse.length()) {
             val jsonObject: JSONObject = jsonResponse.getJSONObject(i)
             val nombre = jsonObject.getString("nombre")
+            val id = jsonObject.getLong("id")
             val imageBytesBase64 = jsonObject.getString("imagenComprimida")
             val imageBytes = Base64.decode(imageBytesBase64, Base64.DEFAULT)
             val imageUri = saveImageToInternalStorage(context, imageBytes)
-            horseItemList.add(HorseItem(nombre, imageUri))
+            horseItemList.add(HorseItem(id, nombre, imageUri))
         }
 
         return horseItemList
