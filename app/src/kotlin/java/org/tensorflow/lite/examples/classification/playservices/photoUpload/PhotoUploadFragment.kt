@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -39,6 +40,7 @@ import java.io.IOException
 class PhotoUploadFragment : DialogFragment() {
 
     private var _binding: FragmentPhotoUploadBinding? = null
+    private val TAG = PhotoUploadFragment::class.java.simpleName
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -101,17 +103,24 @@ class PhotoUploadFragment : DialogFragment() {
         )
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (!isDropdownVisible) {
+            return
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            val initialData = context?.let { it1 -> DataRepository.loadInitialData(it1) }
+            initialData?.let { DataRepository.updateData(it) }
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
 
-    // Refactorizar
     private fun setupView() {
         val prediction = arguments?.getString(ARG_PREDICTION)
-        val serenoValue = arguments?.getFloat(ARG_SERENO)
-        val interesadoValue = arguments?.getFloat(ARG_INTERESADO)
-        val disgustadoValue = arguments?.getFloat(ARG_DISGUSTADO)
 
         val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             arguments?.getParcelable(ARG_URI, Uri::class.java)
@@ -122,6 +131,50 @@ class PhotoUploadFragment : DialogFragment() {
         binding.predictionText.text = prediction
         binding.predictedImage.setImageURI(uri)
 
+        setupRecyclerView()
+
+        binding.toggleButton.setOnClickListener {
+            // Se llama cada vez que se abre
+            if (isDropdownVisible) {
+                toggleDropdown()
+                return@setOnClickListener
+            }
+            lifecycleScope.launch {
+                val initialData = context?.let { it1 -> DataRepository.loadInitialData(it1) }
+                initialData?.let { DataRepository.updateData(it) }
+                toggleDropdown()
+            }
+        }
+
+        binding.cancelButton.setOnClickListener {
+            dismiss()
+        }
+
+        binding.confirmButton.setOnClickListener {
+            prediction?.let { it1 -> confirmPhotoUpload(it1) }
+        }
+
+        val horseCreatorActivity = Intent(context, HorseCreatorActivity::class.java)
+        binding.addHorseBtn.setOnClickListener {
+            startActivity(horseCreatorActivity)
+        }
+    }
+
+    private fun confirmPhotoUpload(prediction: String) {
+        if (selectedHorse != null) {
+            showProgressDialog()
+            lifecycleScope.launch {
+                val validationState = uploadPhoto(
+                    prediction
+                )
+                cancelProgressDialog()
+                if (validationState == HorseCreatorActivity.ValidationState.VALID) dismiss()
+            }
+        }
+        //avisar que hay que seleccionar un caballo
+    }
+
+    private fun setupRecyclerView() {
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
         adapter = HorseItemAdapter(viewModel.data.value!!) { selectedItem: HorseItem ->
@@ -144,45 +197,6 @@ class PhotoUploadFragment : DialogFragment() {
         viewModel.newItemEvent.observe(this) { newItem ->
             adapter.addItem(newItem)
         }
-
-        binding.toggleButton.setOnClickListener {
-            // Se llama cada vez que se abre
-            if (isDropdownVisible) {
-                toggleDropdown()
-                return@setOnClickListener
-            }
-            lifecycleScope.launch {
-                val initialData = context?.let { it1 -> DataRepository.loadInitialData(it1) }
-                if (initialData != null) {
-                    DataRepository.updateData(initialData)
-                }
-                toggleDropdown()
-            }
-        }
-
-        binding.cancelButton.setOnClickListener {
-            dismiss()
-        }
-
-        binding.confirmButton.setOnClickListener {
-            if (selectedHorse != null) {
-                showProgressDialog()
-                lifecycleScope.launch {
-                    val validationState = uploadPhoto(
-                        prediction!!, serenoValue!!, interesadoValue!!, disgustadoValue!!
-                    )
-                    cancelProgressDialog()
-                    if (validationState == HorseCreatorActivity.ValidationState.VALID) dismiss()
-                }
-            }
-            //avisar que hay que seleccionar un caballo
-        }
-
-
-        val horseCreatorActivity = Intent(context, HorseCreatorActivity::class.java)
-        binding.addHorseBtn.setOnClickListener {
-            startActivity(horseCreatorActivity)
-        }
     }
 
     private fun toggleDropdown() {
@@ -198,12 +212,16 @@ class PhotoUploadFragment : DialogFragment() {
     }
 
     private suspend fun uploadPhoto(
-        prediction: String, serenoValue: Float, interesadoValue: Float, disgustadoValue: Float
+        prediction: String
     ): HorseCreatorActivity.ValidationState {
         return withContext(Dispatchers.IO) {
             try {
+                val serenoValue = arguments?.getFloat(ARG_SERENO)
+                val interesadoValue = arguments?.getFloat(ARG_INTERESADO)
+                val disgustadoValue = arguments?.getFloat(ARG_DISGUSTADO)
+
                 val jsonDtoAnalysis =
-                    buildJson(prediction, serenoValue, interesadoValue, disgustadoValue)
+                    buildJson(prediction, serenoValue!!, interesadoValue!!, disgustadoValue!!)
 
                 // Construir el cuerpo de la solicitud multipart
                 val multipartBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
@@ -212,8 +230,11 @@ class PhotoUploadFragment : DialogFragment() {
                 val analysisPart = jsonDtoAnalysis.toString().toRequestBody(jsonMediaType)
                 multipartBuilder.addFormDataPart("analisis", "analysis.json", analysisPart)
 
-                val image: ByteArray? =
-                    selectedHorse?.let { imageHelper.getByteArrayImage(requireContext(), it.imageUri) }
+                val image: ByteArray? = selectedHorse?.let {
+                    imageHelper.getByteArrayImage(
+                        requireContext(), it.imageUri
+                    )
+                }
                 // Agregar la parte de la imagen si existe
                 image?.let {
                     val imageMediaType = "image/jpeg".toMediaTypeOrNull()
@@ -235,6 +256,8 @@ class PhotoUploadFragment : DialogFragment() {
                     HorseCreatorActivity.ValidationState.INVALID
                 }
             } catch (e: IOException) {
+                Log.d(TAG, e.stackTraceToString())
+                e.printStackTrace()
                 HorseCreatorActivity.ValidationState.INVALID
             }
         }
