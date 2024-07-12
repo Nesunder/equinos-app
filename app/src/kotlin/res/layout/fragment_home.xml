@@ -8,20 +8,21 @@
 
     <View
         android:layout_width="match_parent"
-        android:layout_height="490dp"
+        android:layout_height="440dp"
         android:background="@drawable/arc"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"/>
+        app:layout_constraintVertical_bias="0.0" />
 
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="40dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="20dp"
         android:text="@string/app_name"
         android:textColor="@color/white"
         android:textSize="48sp"
@@ -33,8 +34,8 @@
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/presentation_image"
-        android:layout_width="230dp"
-        android:layout_height="230dp"
+        android:layout_width="220dp"
+        android:layout_height="220dp"
         android:contentDescription="@string/imagen_de_un_caballo"
         android:src="@drawable/caballo_inicio"
         app:layout_constraintBottom_toTopOf="@id/cardViewLayout"
@@ -47,9 +48,10 @@
         android:id="@+id/cardViewLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="20dp"
         android:gravity="center"
         android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@id/recyclerViewTipsLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/presentation_image">
@@ -67,7 +69,6 @@
                 android:orientation="vertical">
 
                 <com.google.android.material.button.MaterialButton
-                    android:contentDescription="@string/bot_n_de_agregar_un_caballo"
                     android:id="@+id/addHorseBtn"
                     android:layout_width="60dp"
                     android:layout_height="60dp"
@@ -75,6 +76,7 @@
                     android:layout_marginTop="16dp"
                     android:layout_marginBottom="4dp"
                     android:background="@drawable/background_oval_2"
+                    android:contentDescription="@string/bot_n_de_agregar_un_caballo"
                     android:gravity="center"
                     app:backgroundTint="@color/nice_pink"
                     app:icon="@drawable/transparent_horse"
@@ -195,60 +197,53 @@
 
     </LinearLayout>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/ivPlaceholder"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:background="@drawable/background_oval_2"
-        android:paddingTop="8dp"
-        app:backgroundTint="@color/nice_pink"
-        app:icon="@drawable/message"
-        app:iconGravity="textStart"
-        app:iconPadding="0dp"
-        app:iconSize="32dp"
-        app:iconTint="@color/purple_700"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <LinearLayout
+        android:id="@+id/recyclerViewTipsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.2"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardViewLayout"
-        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Circle" />
+        app:layout_constraintTop_toBottomOf="@id/cardViewLayout">
 
-    <com.google.android.material.button.MaterialButton
-        android:contentDescription="@string/bot_n_de_clasificar_imagen"
-        android:id="@+id/button"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:background="@drawable/background_oval_2"
-        android:paddingTop="8dp"
-        app:backgroundTint="@color/nice_pink"
-        app:icon="@drawable/favorites"
-        app:iconGravity="textStart"
-        app:iconPadding="0dp"
-        app:iconSize="32dp"
-        app:iconTint="@color/purple_700"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardViewLayout"
-        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Circle" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/button2"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:background="@drawable/background_oval_2"
-        app:backgroundTint="@color/nice_pink"
-        app:icon="@drawable/outline_image_search_38"
-        app:iconGravity="textStart"
-        app:iconPadding="0dp"
-        app:iconTint="@color/purple_700"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.8"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardViewLayout"
-        app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.MyApp.Button.Circle" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_weight="5"
+                android:text="@string/tips"
+                android:textColor="@color/colorPrimary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackground"
+                android:text="@string/ver_todo"
+                android:textAlignment="viewEnd"
+                android:textAllCaps="false"
+                android:textColor="@color/colorPrimary"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewTips"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:clipToPadding="false"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

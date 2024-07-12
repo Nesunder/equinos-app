@@ -10,9 +10,12 @@ import android.view.ViewGroup
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import org.tensorflow.lite.examples.classification.playservices.ImageClassificationActivity
 import org.tensorflow.lite.examples.classification.playservices.databinding.FragmentHomeBinding
 import org.tensorflow.lite.examples.classification.playservices.horseCreation.HorseCreatorActivity
+import org.tensorflow.lite.examples.classification.playservices.tips.TipsAdapter
+import org.tensorflow.lite.examples.classification.playservices.tips.TipsList
 
 
 class HomeFragment : Fragment() {
@@ -21,11 +24,11 @@ class HomeFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
+    private lateinit var adapter: TipsAdapter
 
     private val pickIntent by lazy {
         Intent(
-            Intent.ACTION_PICK,
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI
         )
     }
 
@@ -35,19 +38,19 @@ class HomeFragment : Fragment() {
                 val uri = result.data?.data!!
                 val openCameraIntent =
                     Intent(activity, ImageClassificationActivity::class.java).putExtra(
-                        "imageUri",
-                        uri
+                        "imageUri", uri
                     )
                 startActivity(openCameraIntent)
             }
         }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
 
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
+
+        setupRecyclerView()
 
         binding.classifyImageBtn.setOnClickListener {
             openGallery()
@@ -69,5 +72,12 @@ class HomeFragment : Fragment() {
 
     private fun openGallery() {
         openGalleryLauncher.launch(pickIntent)
+    }
+
+    private fun setupRecyclerView() {
+        adapter = TipsAdapter(requireContext(), TipsList.tipsList)
+        binding.recyclerViewTips.layoutManager =
+            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        binding.recyclerViewTips.adapter = adapter
     }
 }

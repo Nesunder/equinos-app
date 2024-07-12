@@ -79,6 +79,11 @@
     <string name="boton_de_agregar_caballo">Botón de agregar caballo</string>
     <string name="tiro_al_blanco">Tiro al blanco</string>
     <string name="foto_del_caballo">Foto del caballo</string>
+    <string name="imagen_del_tip">Imagen del tip</string>
+    <string name="title">Title</string>
+    <string name="subtitle">Subtitle</string>
+    <string name="ver_todo">Ver todo</string>
+    <string name="tips">Tips</string>
     <string-array name="sexo_array">
         <item>Masculino</item>
         <item>Femenino</item>
