@@ -18,7 +18,7 @@ import java.io.File
 
 class GalleryFragment : Fragment() {
     private var _binding: FragmentGalleryBinding? = null
-    private var imageList = ArrayList<Image>()
+    private var imageList = ArrayList<ImageInfo>()
     private val imageViewerIntent by lazy {
         Intent(
             requireActivity(),
@@ -65,22 +65,19 @@ class GalleryFragment : Fragment() {
             val file = File(filePath)
             scanDirectory()
             val files = file.listFiles()
-            if (files != null) {
-                for (fileItem in files) {
-                    if (fileItem.path.endsWith(".png") || fileItem.path.endsWith(".jpg")) {
-                        imageList.add(
-                            Image(
-                                fileItem.name,
-                                fileItem.path,
-                                fileItem.length(),
-                                "Sereno",
-                                "Tiro al blanco",
-                                1,
-                                "pepe"
-                            )
-                        )
-                    }
-                }
+            files?.filter { it.path.endsWith(".png") || it.path.endsWith(".jpg") }?.forEach {
+                val imageInfo = ImageInfo.load(requireContext(), it.path)
+                imageList.add(
+                    ImageInfo(
+                        it.name,
+                        it.path,
+                        it.length(),
+                        imageInfo?.prediction ?: "",
+                        imageInfo?.horseName ?: "",
+                        1,
+                        "pepe"
+                    )
+                )
             }
         }
         if (isAdded) {

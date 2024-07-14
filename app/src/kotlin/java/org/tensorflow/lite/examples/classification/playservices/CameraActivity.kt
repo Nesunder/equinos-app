@@ -48,6 +48,7 @@ import android.view.animation.AccelerateDecelerateInterpolator
 /** Activity that displays the camera and performs object detection on the incoming frames */
 class CameraActivity : AppCompatActivity() {
 
+    private var savedImagePath: String = ""
     private lateinit var imageAnalysis: ImageAnalysis
     private var uri: Uri? = null
     private var predictionResult: String = ""
@@ -247,16 +248,16 @@ class CameraActivity : AppCompatActivity() {
 
     private suspend fun saveClassifiedPhoto() {
         showProgressDialog()
-        val path = imageHelper.savePhotoFromBitmap(
-            imageHelper.getBitmapFromView(
+        savedImagePath = imageHelper.savePhotoFromBitmap(
+            this@CameraActivity, imageHelper.getBitmapFromView(
                 activityCameraBinding.flPreviewViewContainer!!
-            ), contentResolver
+            ), contentResolver, predictionResult
         )
 
         cancelProgressDialog()
-        if (path.isNotEmpty()) {
+        if (savedImagePath.isNotEmpty()) {
             Toast.makeText(
-                this@CameraActivity, "Archivo guardado: $path", Toast.LENGTH_SHORT
+                this@CameraActivity, "Archivo guardado: $savedImagePath", Toast.LENGTH_SHORT
             ).show()
             //shareFile(path)
         } else {
@@ -268,7 +269,7 @@ class CameraActivity : AppCompatActivity() {
 
     private fun showRepositoryFormDialog() {
         val newFragment = PhotoUploadFragment.newInstance(
-            predictionResult, uri!!, interesadoValue, serenoValue, disgustadoValue
+            predictionResult, uri!!, interesadoValue, serenoValue, disgustadoValue, savedImagePath
         )
         newFragment.show(supportFragmentManager, "fragment_photo_upload")
     }

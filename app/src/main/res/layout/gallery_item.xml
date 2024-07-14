@@ -26,19 +26,41 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="8dp"
+            android:textSize="16sp"
             android:layout_toEndOf="@id/list_item_image"
             android:singleLine="true"
             android:textColor="@color/black"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/list_item_size"
+            android:id="@+id/list_item_prediction"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/list_item_title"
             android:layout_marginStart="10dp"
+            android:textColor="@color/gallery_grey_text"
             android:layout_toEndOf="@id/list_item_image" />
+
+        <TextView
+            android:id="@+id/list_item_horse_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/list_item_prediction"
+            android:layout_marginStart="10dp"
+            android:textColor="@color/gallery_grey_text"
+            android:layout_toEndOf="@id/list_item_image" />
+
+        <TextView
+            android:id="@+id/list_item_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/list_item_prediction"
+            android:layout_alignParentEnd="true"
+            android:textAlignment="viewEnd"
+            android:layout_marginEnd="16dp"
+            android:textColor="@color/gallery_grey_text"
+            android:layout_toEndOf="@id/list_item_horse_name" />
 
     </RelativeLayout>
 

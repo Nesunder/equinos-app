@@ -14,7 +14,7 @@ import kotlin.math.log10
 import kotlin.math.pow
 
 
-class ImageAdapter(private var context: Context, private var arrayList: ArrayList<Image>) :
+class ImageAdapter(private var context: Context, private var arrayList: ArrayList<ImageInfo>) :
     RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
     private var onItemClickListener: OnItemClickListener? = null
 
@@ -26,6 +26,8 @@ class ImageAdapter(private var context: Context, private var arrayList: ArrayLis
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.title.text = arrayList[position].title
         holder.size.text = getSize(arrayList[position].size)
+        holder.prediction.text = capitalizeFirstLetter(arrayList[position].prediction)
+        holder.horseName.text = capitalizeFirstLetter(arrayList[position].horseName)
         Glide.with(context).load(arrayList[position].path)
             .placeholder(R.drawable.ic_baseline_broken_image_24).into(holder.imageView)
         holder.itemView.setOnClickListener { v: View? ->
@@ -44,6 +46,8 @@ class ImageAdapter(private var context: Context, private var arrayList: ArrayLis
         var imageView: ImageView = itemView.findViewById(R.id.list_item_image)
         var title: TextView = itemView.findViewById(R.id.list_item_title)
         var size: TextView = itemView.findViewById(R.id.list_item_size)
+        var prediction: TextView = itemView.findViewById(R.id.list_item_prediction)
+        var horseName: TextView = itemView.findViewById(R.id.list_item_horse_name)
     }
 
     fun setOnItemClickListener(onItemClickListener: OnItemClickListener?) {
@@ -52,6 +56,10 @@ class ImageAdapter(private var context: Context, private var arrayList: ArrayLis
 
     fun interface OnItemClickListener {
         fun onClick(view: View?, path: String?)
+    }
+
+    private fun capitalizeFirstLetter(word: String): String {
+        return word.replaceFirstChar { it.uppercase() }
     }
 
     companion object {

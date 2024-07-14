@@ -17,6 +17,7 @@ import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.tensorflow.lite.examples.classification.playservices.gallery.ImageInfo
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -25,6 +26,7 @@ import java.io.InputStream
 //no se si tiene mucho sentido el nombre pero bueno
 class ImageHelper {
     private val isFrontFacing = false
+    private var finalPath = ""
 
     fun getBitmap(uri: Uri, contentResolver: ContentResolver): Bitmap? {
         val imageBitmap: Bitmap? = getBitmapFromUri(uri, contentResolver)
@@ -122,16 +124,16 @@ class ImageHelper {
         return returnedBitmap
     }
 
-    suspend fun savePhotoFromBitmap(
-        mBitmap: Bitmap?, contentResolver: ContentResolver
+    suspend fun savePhotoFromBitmap(context: Context,
+        mBitmap: Bitmap?, contentResolver: ContentResolver, predictionResult: String
     ): String {
         return withContext(Dispatchers.IO) {
             mBitmap?.let {
                 try {
-                    val uri = getUriForFile(contentResolver)
+                    val uri = getUriForFile(context, contentResolver, predictionResult)
                     uri?.let {
                         saveBitmapWithUri(it, mBitmap, contentResolver)
-                        it.path!!
+                        finalPath
                     } ?: ""
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -141,7 +143,12 @@ class ImageHelper {
         }
     }
 
-    private fun getUriForFile(contentResolver: ContentResolver): Uri? {
+    private fun getUriForFile(
+        context: Context,
+        contentResolver: ContentResolver,
+        predictionResult: String
+    ): Uri? {
+        val pathEnd = "EquinosApp_" + System.currentTimeMillis() / 1000
         val contentValues = ContentValues().apply {
             put(
                 MediaStore.MediaColumns.DISPLAY_NAME,
@@ -154,6 +161,12 @@ class ImageHelper {
         }
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            finalPath = "/storage/emulated/0/DCIM/EquinosApp/$pathEnd.jpg"
+            //Guardando datos de la imagen
+            val imageInfo = ImageInfo(
+                "", finalPath, 0L, predictionResult, "", -1, ""
+            )
+            ImageInfo.save(context, imageInfo)
             contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
         } else {
             val imagesDir =
@@ -164,7 +177,14 @@ class ImageHelper {
                 file.mkdirs()
             }
             val imageFile = File(file, "EquinosApp_" + System.currentTimeMillis() / 1000 + ".jpg")
-            Uri.fromFile(imageFile)
+            val imagePath = Uri.fromFile(imageFile)
+
+            //Guardando datos de la imagen
+            val imageInfo = ImageInfo(
+                imageFile.name, imagePath.toString(), imageFile.length(), predictionResult, "", -1, ""
+            )
+            ImageInfo.save(context, imageInfo)
+            imagePath
         }
     }
 

@@ -4,4 +4,5 @@
     <color name="greyText">#B5B5B5</color>
     <color name="card_background">#373737</color>
     <color name="card_alternative">#303030</color>
+    <color name="gallery_grey_text">#757575</color>
 </resources>

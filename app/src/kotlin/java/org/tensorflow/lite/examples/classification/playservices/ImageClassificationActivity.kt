@@ -31,6 +31,7 @@ import org.tensorflow.lite.examples.classification.playservices.photoUpload.Phot
 
 class ImageClassificationActivity : AppCompatActivity() {
 
+    private var savedImagePath: String = ""
     private var classifiedBitmap: Bitmap? = null
     private var result: String = ""
     private var interesadoValue: Float = 0f
@@ -187,7 +188,7 @@ class ImageClassificationActivity : AppCompatActivity() {
 
     private fun showRepositoryFormDialog() {
         val newFragment = PhotoUploadFragment.newInstance(
-            result, uri!!, interesadoValue, serenoValue, disgustadoValue
+            result, uri!!, interesadoValue, serenoValue, disgustadoValue, savedImagePath
         )
         newFragment.show(supportFragmentManager, "fragment_photo_upload")
     }
@@ -221,18 +222,19 @@ class ImageClassificationActivity : AppCompatActivity() {
     private fun saveClassifiedPhoto() {
         lifecycleScope.launch {
             showProgressDialog()
-            val path = imageHelper.savePhotoFromBitmap(
+            savedImagePath = imageHelper.savePhotoFromBitmap(
+                this@ImageClassificationActivity,
                 imageHelper.getBitmapFromView(
                     imageClassificationBinding.flPreviewViewContainer
                 ),
-                contentResolver
+                contentResolver, result
             )
 
             cancelProgressDialog()
-            if (path.isNotEmpty()) {
+            if (savedImagePath.isNotEmpty()) {
                 Toast.makeText(
                     this@ImageClassificationActivity,
-                    "Archivo guardado: $path",
+                    "Archivo guardado: $savedImagePath",
                     Toast.LENGTH_SHORT
                 ).show()
                 //shareFile(path)

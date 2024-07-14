@@ -30,6 +30,7 @@ import org.tensorflow.lite.examples.classification.playservices.R
 import org.tensorflow.lite.examples.classification.playservices.appRepository.DataRepository
 import org.tensorflow.lite.examples.classification.playservices.appRepository.MainViewModel
 import org.tensorflow.lite.examples.classification.playservices.databinding.FragmentPhotoUploadBinding
+import org.tensorflow.lite.examples.classification.playservices.gallery.ImageInfo
 import org.tensorflow.lite.examples.classification.playservices.horseCreation.HorseItem
 import org.tensorflow.lite.examples.classification.playservices.horseCreation.HorseCreatorActivity
 import org.tensorflow.lite.examples.classification.playservices.horseCreation.HorseItemAdapter
@@ -64,17 +65,21 @@ class PhotoUploadFragment : DialogFragment() {
         private const val ARG_SERENO = "arg_interesado"
         private const val ARG_INTERESADO = "arg_sereno"
         private const val ARG_DISGUSTADO = "arg_disgustado"
+        private const val ARG_IMAGE_PATH = "arg_path"
+
 
         fun newInstance(
             prediction: String,
             uri: Uri,
             interesadoValue: Float,
             serenoValue: Float,
-            disgustadoValue: Float
+            disgustadoValue: Float,
+            savedImagePath: String
         ): PhotoUploadFragment {
             val fragment = PhotoUploadFragment()
             val args = Bundle()
             args.putString(ARG_PREDICTION, prediction)
+            args.putString(ARG_IMAGE_PATH, savedImagePath)
             args.putFloat(ARG_INTERESADO, interesadoValue)
             args.putFloat(ARG_DISGUSTADO, disgustadoValue)
             args.putFloat(ARG_SERENO, serenoValue)
@@ -178,11 +183,21 @@ class PhotoUploadFragment : DialogFragment() {
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
         adapter = HorseItemAdapter(viewModel.data.value!!) { selectedItem: HorseItem ->
+            val imagePath = arguments?.getString(ARG_IMAGE_PATH)
             selectedHorse = selectedItem
             binding.selectedItemImage.setImageURI(selectedItem.imageUri)
             binding.selectedItemText.text = selectedItem.name
             binding.selectedItemLayout.visibility = LinearLayout.VISIBLE
             toggleDropdown()
+            // Si se guardó la imagen localmente, agrego en la info el nombre del caballo
+            if(imagePath!!.isNotEmpty()) {
+                ImageInfo.updateField(
+                    requireContext(),
+                    imagePath,
+                    "horseName",
+                    selectedItem.name
+                )
+            }
         }
 
         binding.recyclerView.layoutManager = LinearLayoutManager(context)

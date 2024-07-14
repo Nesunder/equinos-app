@@ -28,4 +28,5 @@
     <color name="card_background">#ECECEC</color>
     <color name="card_alternative">#F4F4F4</color>
     <color name="red" >#D32F2F</color>
+    <color name="gallery_grey_text">#757575</color>
 </resources>
