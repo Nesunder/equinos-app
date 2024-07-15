@@ -36,16 +36,16 @@
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
         <activity
-            android:name=".gallery.ImageViewerActivity"
+            android:name="com.equinos.gallery.ImageViewerActivity"
             android:exported="false" />
         <activity
-            android:name=".CameraActivity"
+            android:name="com.equinos.CameraActivity"
             android:exported="true"
             android:rotationAnimation="seamless"
             tools:targetApi="O" />
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.equinos.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
