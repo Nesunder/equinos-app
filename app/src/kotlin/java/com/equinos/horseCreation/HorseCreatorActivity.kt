@@ -134,7 +134,6 @@ class HorseCreatorActivity : AppCompatActivity() {
             )
             if (imageSelected) {
                 newHorseItem.name = nameInput
-                viewModel.addItem(newHorseItem)
                 val bytes: ByteArray? =
                     imageHelper.getByteArrayImage(this@HorseCreatorActivity, imageUri)
                 lifecycleScope.launch {

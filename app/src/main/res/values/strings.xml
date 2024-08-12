@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">Image Classification</string>
+    <string name="app_name">Equinos App</string>
     <string name="capture_button_alt">Capture</string>
     <string name="unknown">UNKNOWN</string>
     <string name="imagen_estudiada">Imagen estudiada</string>

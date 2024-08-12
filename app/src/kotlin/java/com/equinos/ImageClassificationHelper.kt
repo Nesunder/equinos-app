@@ -76,7 +76,6 @@ class ImageClassificationHelper(
         }
 
         InterpreterApi.create(FileUtil.loadMappedFile(context, MODEL_PATH), interpreterOption)
-
     }
 
     // Only use interpreter after initialization finished in CameraActivity
@@ -97,10 +96,6 @@ class ImageClassificationHelper(
     }
 
     private var imageClassifier: ImageClassifier? = null
-
-    init {
-        setupImageClassifier()
-    }
 
     fun clearImageClassifier() {
         imageClassifier = null

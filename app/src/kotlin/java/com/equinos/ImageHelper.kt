@@ -107,11 +107,10 @@ class ImageHelper {
     fun getBitmapFromView(view: View): Bitmap {
 
         // Define a bitmap with the same size as the view.
-        // CreateBitmap : Returns a mutable bitmap with the specified width and height
         val returnedBitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
         //Bind a canvas to it
         val canvas = Canvas(returnedBitmap)
-        //Get the view's background
+
         val bgDrawable = view.background
         if (bgDrawable != null) {
             bgDrawable.draw(canvas)
@@ -120,7 +119,6 @@ class ImageHelper {
         }
         // draw the view on the canvas
         view.draw(canvas)
-        //return the bitmap
         return returnedBitmap
     }
 

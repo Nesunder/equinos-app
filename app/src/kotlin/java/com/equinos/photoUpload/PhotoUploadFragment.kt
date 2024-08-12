@@ -110,12 +110,12 @@ class PhotoUploadFragment : DialogFragment() {
 
     override fun onResume() {
         super.onResume()
-        if (!isDropdownVisible) {
-            return
-        }
         viewLifecycleOwner.lifecycleScope.launch {
             val initialData = context?.let { it1 -> DataRepository.loadInitialData(it1) }
-            initialData?.let { DataRepository.updateData(it) }
+            initialData?.let {
+                viewModel.updateData(it)
+                adapter.updateData(it)
+            }
         }
     }
 
@@ -140,15 +140,7 @@ class PhotoUploadFragment : DialogFragment() {
 
         binding.toggleButton.setOnClickListener {
             // Se llama cada vez que se abre
-            if (isDropdownVisible) {
-                toggleDropdown()
-                return@setOnClickListener
-            }
-            lifecycleScope.launch {
-                val initialData = context?.let { it1 -> DataRepository.loadInitialData(it1) }
-                initialData?.let { DataRepository.updateData(it) }
-                toggleDropdown()
-            }
+            toggleDropdown()
         }
 
         binding.cancelButton.setOnClickListener {
@@ -183,34 +175,29 @@ class PhotoUploadFragment : DialogFragment() {
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
         adapter = HorseItemAdapter(viewModel.data.value!!) { selectedItem: HorseItem ->
-            val imagePath = arguments?.getString(ARG_IMAGE_PATH)
             selectedHorse = selectedItem
             binding.selectedItemImage.setImageURI(selectedItem.imageUri)
             binding.selectedItemText.text = selectedItem.name
             binding.selectedItemLayout.visibility = LinearLayout.VISIBLE
+
             toggleDropdown()
-            // Si se guardó la imagen localmente, agrego en la info el nombre del caballo
-            if(imagePath!!.isNotEmpty()) {
-                ImageInfo.updateField(
-                    requireContext(),
-                    imagePath,
-                    "horseName",
-                    selectedItem.name
-                )
-            }
+            setImageData(selectedItem)
         }
 
         binding.recyclerView.layoutManager = LinearLayoutManager(context)
         binding.recyclerView.adapter = adapter
+    }
 
-        // Observando los datos
-        viewModel.data.observe(this) { newData ->
-            adapter.updateData(newData)
-        }
-
-        // Observing specific events
-        viewModel.newItemEvent.observe(this) { newItem ->
-            adapter.addItem(newItem)
+    private fun setImageData(selectedItem: HorseItem) {
+        // Si se guardó la imagen localmente, agrego en la info el nombre del caballo
+        val imagePath = arguments?.getString(ARG_IMAGE_PATH)
+        if(imagePath!!.isNotEmpty()) {
+            ImageInfo.updateField(
+                requireContext(),
+                imagePath,
+                "horseName",
+                selectedItem.name
+            )
         }
     }
 

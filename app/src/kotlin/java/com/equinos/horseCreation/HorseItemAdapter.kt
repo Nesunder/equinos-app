@@ -6,7 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.equinos.R
 
 
@@ -34,7 +36,10 @@ class HorseItemAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
-        holder.imageView.setImageURI(item.imageUri)
+        holder.imageView.setImageDrawable(null)
+        Glide.with(holder.imageView.context)
+            .load(item.imageUri)
+            .into(holder.imageView)
         holder.textView.text = item.name
         holder.itemView.setOnClickListener { onItemClick(item) }
     }
@@ -42,8 +47,22 @@ class HorseItemAdapter(
     override fun getItemCount(): Int = items.size
 
     fun updateData(newItems: List<HorseItem>) {
+        val diffCallback = object : DiffUtil.Callback() {
+            override fun getOldListSize() = items.size
+            override fun getNewListSize() = newItems.size
+
+            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return items[oldItemPosition].id == newItems[newItemPosition].id
+            }
+
+            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+                return items[oldItemPosition] == newItems[newItemPosition]
+            }
+        }
+
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
         items = newItems
-        notifyDataSetChanged()
+        diffResult.dispatchUpdatesTo(this)
     }
 
     fun addItem(newItem: HorseItem) {

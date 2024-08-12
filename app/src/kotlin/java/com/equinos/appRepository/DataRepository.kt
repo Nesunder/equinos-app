@@ -26,6 +26,7 @@ object DataRepository {
     }
 
     fun updateData(newData: List<HorseItem>) {
+        if (newData == _data.value) return
         _data.value = newData
     }
 

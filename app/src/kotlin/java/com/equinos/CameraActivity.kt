@@ -162,43 +162,7 @@ class CameraActivity : AppCompatActivity() {
         }
 
         activityCameraBinding.cameraCaptureButton.setOnClickListener {
-            // Disable all camera controls
-            it.isEnabled = false
-            if (pauseAnalysis) {
-                // If image analysis is in paused state, resume it
-                pauseAnalysis = false
-                setAnalysisView()
-            } else {
-                // Otherwise, pause image analysis and freeze image
-                pauseAnalysis = true
-
-                // Capture bitmap from PreviewView
-                val unpredictedImage = activityCameraBinding.viewFinder.bitmap
-                if (unpredictedImage == null) {
-                    it.isEnabled = true
-                    return@setOnClickListener
-                }
-
-                val matrix = Matrix().apply {
-                    if (isFrontFacing) postScale(-1f, 1f)
-                }
-                val correctedImage = Bitmap.createBitmap(
-                    unpredictedImage, 0, 0, unpredictedImage.width, unpredictedImage.height, matrix, true
-                )
-
-                classifyAndSetPredictedImage(correctedImage)
-                activityCameraBinding.imagePredicted.visibility = View.VISIBLE
-                activityCameraBinding.saveButton?.visibility = View.VISIBLE
-                activityCameraBinding.uploadBtn?.visibility = View.VISIBLE
-
-                lifecycleScope.launch {
-                    uri = imageHelper.getImageUriFromBitmap(
-                        this@CameraActivity, correctedImage
-                    )
-                }
-            }
-            // Re-enable camera controls
-            it.isEnabled = true
+            captureAndClassify(it)
         }
 
         activityCameraBinding.saveButton?.setOnClickListener {
@@ -227,6 +191,46 @@ class CameraActivity : AppCompatActivity() {
             }
             return@setOnTouchListener true
         }
+    }
+
+    private fun captureAndClassify(it: View) {
+        // Disable all camera controls
+        it.isEnabled = false
+        if (pauseAnalysis) {
+            // If image analysis is in paused state, resume it
+            pauseAnalysis = false
+            setAnalysisView()
+        } else {
+            // Otherwise, pause image analysis and freeze image
+            pauseAnalysis = true
+
+            // Capture bitmap from PreviewView
+            val unpredictedImage = activityCameraBinding.viewFinder.bitmap
+            if (unpredictedImage == null) {
+                it.isEnabled = true
+                return
+            }
+
+            val matrix = Matrix().apply {
+                if (isFrontFacing) postScale(-1f, 1f)
+            }
+            val correctedImage = Bitmap.createBitmap(
+                unpredictedImage, 0, 0, unpredictedImage.width, unpredictedImage.height, matrix, true
+            )
+
+            classifyAndSetPredictedImage(correctedImage)
+            activityCameraBinding.imagePredicted.visibility = View.VISIBLE
+            activityCameraBinding.saveButton?.visibility = View.VISIBLE
+            activityCameraBinding.uploadBtn?.visibility = View.VISIBLE
+
+            lifecycleScope.launch {
+                uri = imageHelper.getImageUriFromBitmap(
+                    this@CameraActivity, correctedImage
+                )
+            }
+        }
+        // Re-enable camera controls
+        it.isEnabled = true
     }
 
     override fun onDestroy() {
