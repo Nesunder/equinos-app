@@ -2,8 +2,10 @@ package com.equinos
 
 import android.Manifest
 import android.animation.Animator
+import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -16,6 +18,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.result.ActivityResult
@@ -28,22 +31,22 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.FocusMeteringAction
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.equinos.databinding.ActivityCameraBinding
+import com.equinos.photoUpload.PhotoUploadFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.equinos.databinding.ActivityCameraBinding
-import com.equinos.photoUpload.PhotoUploadFragment
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
-import android.animation.AnimatorSet
-import android.app.Dialog
-import android.view.animation.AccelerateDecelerateInterpolator
+
 
 /** Activity that displays the camera and performs object detection on the incoming frames */
 class CameraActivity : AppCompatActivity() {
@@ -287,15 +290,26 @@ class CameraActivity : AppCompatActivity() {
                 // Camera provider is now guaranteed to be available
                 cameraProvider = cameraProviderFuture.get()
 
-                // Set up the view finder use case to display camera preview
-                // Con esto se puede cambiar la relación de aspecto.
-                // Deprecado en versiones mas nuevas de android, en una app que hice, esta hecho de otra forma.
-                preview = Preview.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9)
-                    .setTargetRotation(activityCameraBinding.viewFinder.display.rotation).build()
+                // Crea la estrategia de relación de aspecto (AspectRatioStrategy)
+                val aspectRatioStrategy = AspectRatioStrategy(
+                    AspectRatio.RATIO_16_9,  // Relación de aspecto preferida
+                    AspectRatioStrategy.FALLBACK_RULE_AUTO    // Relación de aspecto secundaria (fallback)
+                )
+
+                // Crea el selector de resolución (ResolutionSelector) con la estrategia de relación de aspecto
+                val resolutionSelector = ResolutionSelector.Builder()
+                    .setAspectRatioStrategy(aspectRatioStrategy)
+                    .build()
+
+                // Construye la vista previa (Preview) utilizando el ResolutionSelector
+                preview = Preview.Builder()
+                    .setResolutionSelector(resolutionSelector)
+                    .setTargetRotation(activityCameraBinding.viewFinder.display.rotation)
+                    .build()
 
                 // Set up the image analysis use case which will process frames in real time
                 imageAnalysis =
-                    ImageAnalysis.Builder().setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                    ImageAnalysis.Builder().setResolutionSelector(resolutionSelector)
                         .setTargetRotation(activityCameraBinding.viewFinder.display.rotation)
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888).build()
