@@ -163,20 +163,20 @@ class HorseCreatorActivity : AppCompatActivity() {
                 // Agregar la parte del JSON del caballo
                 val jsonMediaType = "application/json".toMediaTypeOrNull()
                 val caballoPart = caballoJson.toString().toRequestBody(jsonMediaType)
-                multipartBuilder.addFormDataPart("caballo", "caballo.json", caballoPart)
+                multipartBuilder.addFormDataPart("horse", "caballo.json", caballoPart)
 
                 // Agregar la parte de la imagen si existe
                 image?.let {
                     val imageMediaType = "image/jpeg".toMediaTypeOrNull()
                     val imagePart = it.toRequestBody(imageMediaType)
-                    multipartBuilder.addFormDataPart("imagen", "imagen.jpg", imagePart)
+                    multipartBuilder.addFormDataPart("image", "imagen.jpg", imagePart)
                 }
 
                 val multipartBody = multipartBuilder.build()
 
                 val token = Network.getAccessToken()
                 val request = Request.Builder()
-                    .url("${Network.BASE_URL}/api/caballos")
+                    .url("${Network.BASE_URL}/api/horses")
                     .post(multipartBody)
                     .addHeader("Authorization", "Bearer $token")
                     .build()
@@ -194,25 +194,25 @@ class HorseCreatorActivity : AppCompatActivity() {
     }
 
     private fun buildCaballoJson(
-        nombre: String,
-        sexo: String,
+        name: String,
+        gender: String,
         entrenamiento: Boolean,
         estabulacion: Boolean,
         salidaAPiquete: Boolean,
         dolor: Boolean,
-        observaciones: String,
-        fechaNacimiento: String
+        observations: String,
+        dateOfBirth: String
     ): JSONObject {
         val json = JSONObject()
 
-        json.put("nombre", nombre)
-        json.put("sexo", sexo)
-        json.put("fechaNacimiento", fechaNacimiento)
+        json.put("name", name)
+        json.put("gender", gender)
+        json.put("dateOfBirth", dateOfBirth)
         json.put("entrenamiento", entrenamiento)
         json.put("estabulacion", estabulacion)
         json.put("salidaAPiquete", salidaAPiquete)
         json.put("dolor", dolor)
-        json.put("observaciones", observaciones)
+        json.put("observations", observations)
 
         return json
     }

@@ -46,6 +46,10 @@ class LoginActivity : BaseActivity() {
                 }
             }
         }
+        val signUpActivityIntent = Intent(applicationContext, SignUpActivity::class.java)
+        loginBinding.registerButton.setOnClickListener {
+            startActivity(signUpActivityIntent)
+        }
         loginBinding.passwordToggle.setOnClickListener {
             togglePasswordVisibility()
         }
@@ -81,7 +85,7 @@ class LoginActivity : BaseActivity() {
         val password = loginBinding.passwordEditText.text.toString().trim()
 
         val requestBody = JSONObject().apply {
-            put("identificacion", email)
+            put("identification", email)
             put("password", password)
         }
 
@@ -90,7 +94,7 @@ class LoginActivity : BaseActivity() {
             val jsonResponse = JSONObject(response)
             val accessToken = jsonResponse.getString("accessToken")
             setAccessToken(accessToken)
-            val idUsuario = jsonResponse.getString("idUsuario")
+            val idUsuario = jsonResponse.getString("userId")
             setIdUsuario(idUsuario)
 
             true

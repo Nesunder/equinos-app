@@ -230,7 +230,7 @@ class PhotoUploadFragment : DialogFragment() {
                 // Agregar la parte del JSON del caballo
                 val jsonMediaType = "application/json".toMediaTypeOrNull()
                 val analysisPart = jsonDtoAnalysis.toString().toRequestBody(jsonMediaType)
-                multipartBuilder.addFormDataPart("analisis", "analysis.json", analysisPart)
+                multipartBuilder.addFormDataPart("analysis", "analysis.json", analysisPart)
 
                 val image: ByteArray? = selectedHorse?.let {
                     imageHelper.getByteArrayImage(
@@ -241,13 +241,13 @@ class PhotoUploadFragment : DialogFragment() {
                 image?.let {
                     val imageMediaType = "image/jpeg".toMediaTypeOrNull()
                     val imagePart = it.toRequestBody(imageMediaType)
-                    multipartBuilder.addFormDataPart("imagen", "imagen.jpg", imagePart)
+                    multipartBuilder.addFormDataPart("image", "imagen.jpg", imagePart)
                 }
 
                 val multipartBody = multipartBuilder.build()
                 val token = Network.getAccessToken()
                 val request =
-                    Request.Builder().url("${Network.BASE_URL}/api/analisis").post(multipartBody)
+                    Request.Builder().url("${Network.BASE_URL}/api/analysis").post(multipartBody)
                         .addHeader("Authorization", "Bearer $token").build()
 
                 val client = OkHttpClient()
