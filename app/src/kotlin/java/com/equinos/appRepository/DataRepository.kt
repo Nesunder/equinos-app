@@ -37,15 +37,15 @@ object DataRepository {
     }
 
     suspend fun loadInitialData(context: Context): List<HorseItem> {
-        val response = performNetworkOperation("${Network.BASE_URL}/api/caballos")
+        val response = performNetworkOperation("${Network.BASE_URL}/api/horses")
         val jsonResponse = JSONArray(response)
         val horseItemList = mutableListOf<HorseItem>()
 
         for (i in 0 until jsonResponse.length()) {
             val jsonObject: JSONObject = jsonResponse.getJSONObject(i)
-            val nombre = jsonObject.getString("nombre")
+            val nombre = jsonObject.getString("name")
             val id = jsonObject.getLong("id")
-            val imageBytesBase64 = jsonObject.getString("imagenComprimida")
+            val imageBytesBase64 = jsonObject.getString("compressedImage")
             val imageBytes = Base64.decode(imageBytesBase64, Base64.DEFAULT)
             val imageUri = saveImageToInternalStorage(context, imageBytes)
             horseItemList.add(HorseItem(id, nombre, imageUri))
