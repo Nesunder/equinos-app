@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/establo"
     android:paddingBottom="70dp"
-    tools:context=".horseList.HorseListFragment">
+    tools:context="com.equinos.horseList.HorseListFragment">
 
     <RelativeLayout
         android:id="@+id/rl"

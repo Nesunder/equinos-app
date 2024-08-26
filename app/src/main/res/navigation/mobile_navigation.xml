@@ -7,22 +7,22 @@
 
     <fragment
         android:id="@+id/homeFragment"
-        android:name="org.tensorflow.lite.examples.classification.playservices.home.HomeFragment"
+        android:name="com.equinos.home.HomeFragment"
         android:label="fragment_home"
         tools:layout="@layout/fragment_home" />
     <fragment
         android:id="@+id/galleryFragment"
-        android:name="org.tensorflow.lite.examples.classification.playservices.gallery.GalleryFragment"
+        android:name="com.equinos.gallery.GalleryFragment"
         android:label="fragment_gallery"
         tools:layout="@layout/fragment_gallery" />
     <fragment
         android:id="@+id/profileFragment"
-        android:name="org.tensorflow.lite.examples.classification.playservices.profile.ProfileFragment"
+        android:name="com.equinos.profile.ProfileFragment"
         android:label="fragment_profile"
         tools:layout="@layout/fragment_profile" />
     <fragment
         android:id="@+id/horseListFragment"
-        android:name="org.tensorflow.lite.examples.classification.playservices.horseList.HorseListFragment"
+        android:name="com.equinos.horseList.HorseListFragment"
         android:label="fragment_horse_list"
         tools:layout="@layout/fragment_horse_list" />
 </navigation>

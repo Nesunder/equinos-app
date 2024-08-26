@@ -34,10 +34,10 @@
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
         <activity
-            android:name=".horseCreation.HorseCreatorActivity"
+            android:name="com.equinos.horseCreation.HorseCreatorActivity"
             android:exported="false" />
         <activity
-            android:name=".loginSignUp.LoginActivity"
+            android:name="com.equinos.loginSignUp.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -46,21 +46,21 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ImageClassificationActivity"
+            android:name="com.equinos.ImageClassificationActivity"
             android:exported="false" />
         <activity
-            android:name=".loginSignUp.SignUpActivity"
+            android:name="com.equinos.loginSignUp.SignUpActivity"
             android:exported="false" />
         <activity
-            android:name=".gallery.ImageViewerActivity"
+            android:name="com.equinos.gallery.ImageViewerActivity"
             android:exported="false" />
         <activity
-            android:name=".CameraActivity"
+            android:name="com.equinos.CameraActivity"
             android:exported="true"
             android:rotationAnimation="seamless"
             tools:targetApi="O" />
         <activity
-            android:name=".MainActivity"
+            android:name="com.equinos.MainActivity"
             android:exported="true" />
 
         <provider

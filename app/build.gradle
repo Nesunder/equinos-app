@@ -20,17 +20,17 @@ apply plugin: "de.undercouch.download"
 
 
 android {
-    namespace 'org.tensorflow.lite.examples.classification.playservices'
+    namespace 'com.equinos'
     compileSdk 34
 
     defaultConfig {
-        applicationId 'org.tensorflow.lite.examples.classification.playservices'
+        applicationId 'com.equinos'
         minSdkVersion 24
         targetSdkVersion 33
         versionCode 1
         versionName "0.0.1"
 
-        testApplicationId 'org.tensorflow.lite.examples.classification.playservices.test'
+        testApplicationId 'com.equinos.test'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 

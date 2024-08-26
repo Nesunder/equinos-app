@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.tensorflow.lite.examples.classification.playservices">
+    package="com.equinos">
     <!-- ImageClassificationHelper class uses android.util.Size(), which is available after SDK 21.
     -->
     <uses-sdk
