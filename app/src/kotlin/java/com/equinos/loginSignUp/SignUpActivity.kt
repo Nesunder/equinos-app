@@ -97,6 +97,7 @@ class SignUpActivity : BaseActivity() {
         val username = signUpBinding.nombreEditText.text.toString().trim()
         val email = signUpBinding.emailEditText.text.toString().trim()
         val password = signUpBinding.passwordEditText.text.toString().trim()
+        val advancedUser = signUpBinding.checkboxAdvancedUser.isChecked
 
         val requestBody = JSONObject().apply {
             put("username", username)
@@ -104,8 +105,14 @@ class SignUpActivity : BaseActivity() {
             put("password", password)
         }
 
+        val url = if (advancedUser) {
+            "${Network.BASE_URL}/api/auth/registerAdvanced"
+        } else {
+            "${Network.BASE_URL}/api/auth/register"
+        }
+
         return try {
-            performNetworkOperation("${Network.BASE_URL}/api/auth/register", requestBody)
+            performNetworkOperation(url, requestBody)
             true
         } catch (e: Exception) {
             e.printStackTrace()

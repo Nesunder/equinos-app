@@ -167,6 +167,13 @@
 
             </RelativeLayout>
 
+            <CheckBox
+                android:id="@+id/checkbox_advanced_user"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/usuario_avanzado"
+                android:layout_marginBottom="16dp"/>
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/registerButton"
                 android:layout_width="match_parent"
