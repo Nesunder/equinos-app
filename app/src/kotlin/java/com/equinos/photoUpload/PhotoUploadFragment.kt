@@ -40,6 +40,7 @@ import java.io.IOException
 
 class PhotoUploadFragment : DialogFragment() {
 
+    private var imageUri: Uri? = null
     private var _binding: FragmentPhotoUploadBinding? = null
     private val TAG = PhotoUploadFragment::class.java.simpleName
 
@@ -127,14 +128,14 @@ class PhotoUploadFragment : DialogFragment() {
     private fun setupView() {
         val prediction = arguments?.getString(ARG_PREDICTION)
 
-        val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        imageUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             arguments?.getParcelable(ARG_URI, Uri::class.java)
         } else {
             arguments?.getParcelable(ARG_URI)
         }
 
         binding.predictionText.text = prediction
-        binding.predictedImage.setImageURI(uri)
+        binding.predictedImage.setImageURI(imageUri)
 
         setupRecyclerView()
 
@@ -232,9 +233,9 @@ class PhotoUploadFragment : DialogFragment() {
                 val analysisPart = jsonDtoAnalysis.toString().toRequestBody(jsonMediaType)
                 multipartBuilder.addFormDataPart("analysis", "analysis.json", analysisPart)
 
-                val image: ByteArray? = selectedHorse?.let {
+                val image: ByteArray? = imageUri?.let {
                     imageHelper.getByteArrayImage(
-                        requireContext(), it.imageUri
+                        requireContext(), it
                     )
                 }
                 // Agregar la parte de la imagen si existe
@@ -270,9 +271,9 @@ class PhotoUploadFragment : DialogFragment() {
     ): JSONObject {
         val json = JSONObject()
 
-        json.put("idUsuario", Network.getIdUsuario())
-        json.put("idCaballo", selectedHorse!!.id)
-        json.put("prediccion", prediction)
+        json.put("userId", Network.getIdUsuario())
+        json.put("horseId", selectedHorse!!.id)
+        json.put("prediction", prediction)
         json.put("sereno", serenoValue)
         json.put("interesado", interesadoValue)
         json.put("disgustado", disgustadoValue)

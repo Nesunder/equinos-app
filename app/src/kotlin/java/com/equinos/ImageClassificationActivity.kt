@@ -187,10 +187,20 @@ class ImageClassificationActivity : AppCompatActivity() {
     }
 
     private fun showRepositoryFormDialog() {
-        val newFragment = PhotoUploadFragment.newInstance(
-            result, uri!!, interesadoValue, serenoValue, disgustadoValue, savedImagePath
-        )
-        newFragment.show(supportFragmentManager, "fragment_photo_upload")
+        var classifiedUri: Uri?
+        lifecycleScope.launch {
+            classifiedUri = imageHelper.getImageUriFromBitmap(
+                this@ImageClassificationActivity, imageHelper.getBitmapFromView(
+                    imageClassificationBinding.flPreviewViewContainer
+                )
+            )
+
+            classifiedUri?.let {
+                PhotoUploadFragment.newInstance(
+                    result, it, interesadoValue, serenoValue, disgustadoValue, savedImagePath
+                )
+            }?.show(supportFragmentManager, "fragment_photo_upload")
+        }
     }
 
     private fun <T> reportItems(

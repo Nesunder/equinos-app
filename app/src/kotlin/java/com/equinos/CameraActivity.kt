@@ -53,7 +53,6 @@ class CameraActivity : AppCompatActivity() {
 
     private var savedImagePath: String = ""
     private lateinit var imageAnalysis: ImageAnalysis
-    private var uri: Uri? = null
     private var predictionResult: String = ""
     private var interesadoValue: Float = 0f
     private var serenoValue: Float = 0f
@@ -104,11 +103,11 @@ class CameraActivity : AppCompatActivity() {
             if (imageRetrievedCorrectly(result)) {
                 showProgressDialog()
                 if (!pauseAnalysis) pauseAnalysis = true
-                uri = result.data?.data!!
+                val uri = result.data?.data!!
                 var imageBitmap: Bitmap?
                 lifecycleScope.launch {
                     imageBitmap = withContext(Dispatchers.IO) {
-                        imageHelper.getBitmap(uri!!, contentResolver)
+                        imageHelper.getBitmap(uri, contentResolver)
                     }
 
                     imageBitmap?.let { classifyAndSetPredictedImage(it) }
@@ -175,9 +174,7 @@ class CameraActivity : AppCompatActivity() {
         }
 
         activityCameraBinding.uploadBtn?.setOnClickListener {
-            if (uri != null) {
-                showRepositoryFormDialog()
-            }
+            showRepositoryFormDialog()
         }
 
         activityCameraBinding.viewFinder.setOnTouchListener { v, event ->
@@ -226,11 +223,6 @@ class CameraActivity : AppCompatActivity() {
             activityCameraBinding.saveButton?.visibility = View.VISIBLE
             activityCameraBinding.uploadBtn?.visibility = View.VISIBLE
 
-            lifecycleScope.launch {
-                uri = imageHelper.getImageUriFromBitmap(
-                    this@CameraActivity, correctedImage
-                )
-            }
         }
         // Re-enable camera controls
         it.isEnabled = true
@@ -275,10 +267,25 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun showRepositoryFormDialog() {
-        val newFragment = PhotoUploadFragment.newInstance(
-            predictionResult, uri!!, interesadoValue, serenoValue, disgustadoValue, savedImagePath
-        )
-        newFragment.show(supportFragmentManager, "fragment_photo_upload")
+        var classifiedUri: Uri?
+        lifecycleScope.launch {
+            classifiedUri = imageHelper.getImageUriFromBitmap(
+                this@CameraActivity, imageHelper.getBitmapFromView(
+                    activityCameraBinding.flPreviewViewContainer!!
+                )
+            )
+
+            classifiedUri?.let {
+                PhotoUploadFragment.newInstance(
+                    predictionResult,
+                    it,
+                    interesadoValue,
+                    serenoValue,
+                    disgustadoValue,
+                    savedImagePath
+                )
+            }?.show(supportFragmentManager, "fragment_photo_upload")
+        }
     }
 
     /** Declare and bind preview and analysis use cases */
