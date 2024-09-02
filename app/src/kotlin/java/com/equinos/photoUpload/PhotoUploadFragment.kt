@@ -112,7 +112,7 @@ class PhotoUploadFragment : DialogFragment() {
     override fun onResume() {
         super.onResume()
         viewLifecycleOwner.lifecycleScope.launch {
-            val initialData = context?.let { it1 -> DataRepository.loadInitialData(it1) }
+            val initialData = context?.let { it1 -> DataRepository.loadInitialData() }
             initialData?.let {
                 viewModel.updateData(it)
                 adapter.updateData(it)
