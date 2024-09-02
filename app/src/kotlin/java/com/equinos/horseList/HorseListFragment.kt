@@ -85,7 +85,7 @@ class HorseListFragment : Fragment() {
     private fun updateHorseListData(onDataLoaded: (List<HorseItem>) -> Unit) {
         viewLifecycleOwner.lifecycleScope.launch {
             val data = context?.let { it1 ->
-                DataRepository.loadInitialData(it1)
+                DataRepository.loadInitialData()
             }
             data?.let {
                 onDataLoaded(it)
