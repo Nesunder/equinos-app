@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -177,7 +178,9 @@ class PhotoUploadFragment : DialogFragment() {
 
         adapter = HorseItemAdapter(viewModel.data.value!!) { selectedItem: HorseItem ->
             selectedHorse = selectedItem
-            binding.selectedItemImage.setImageURI(selectedItem.imageUri)
+            Glide.with(binding.selectedItemImage.context)
+                .load(selectedItem.imageUri)
+                .into(binding.selectedItemImage)
             binding.selectedItemText.text = selectedItem.name
             binding.selectedItemLayout.visibility = LinearLayout.VISIBLE
 
