@@ -41,7 +41,7 @@ object DataRepository {
             val nombre = jsonObject.getString("name")
             val id = jsonObject.getLong("id")
             val image = jsonObject.getString("image")
-            val imageUri = "${Network.BASE_URL}/api/images/horses/$image"
+            val imageUri = "${Network.BASE_URL}/api/images/horses/compressed_$image"
             horseItemList.add(HorseItem(id, nombre, Uri.parse(imageUri)))
         }
         return horseItemList

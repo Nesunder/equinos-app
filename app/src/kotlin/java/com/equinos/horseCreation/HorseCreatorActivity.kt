@@ -137,9 +137,9 @@ class HorseCreatorActivity : AppCompatActivity() {
                 val bytes: ByteArray? =
                     imageHelper.getByteArrayImage(this@HorseCreatorActivity, imageUri)
                 lifecycleScope.launch {
-                    val validationState = pushearCaballo(caballoJson, bytes)
+                    val validationState = uploadHorse(caballoJson, bytes)
                     cancelProgressDialog()
-                    if (validationState == ValidationState.INVALID) finish()
+                    if (validationState == Network.ValidationState.INVALID) finish()
                     showDialog(this@HorseCreatorActivity)
                 }
             } else {
@@ -148,11 +148,7 @@ class HorseCreatorActivity : AppCompatActivity() {
         }
     }
 
-    enum class ValidationState {
-        VALID, INVALID
-    }
-
-    private suspend fun pushearCaballo(caballoJson: JSONObject, image: ByteArray?): ValidationState {
+    private suspend fun uploadHorse(caballoJson: JSONObject, image: ByteArray?): Network.ValidationState {
         return withContext(Dispatchers.IO) {
             try {
                 val client = OkHttpClient()
@@ -183,12 +179,12 @@ class HorseCreatorActivity : AppCompatActivity() {
 
                 val response = client.newCall(request).execute()
                 if (response.isSuccessful) {
-                    ValidationState.VALID
+                    Network.ValidationState.VALID
                 } else {
-                    ValidationState.INVALID
+                    Network.ValidationState.INVALID
                 }
             } catch (e: IOException) {
-                ValidationState.INVALID
+                Network.ValidationState.INVALID
             }
         }
     }

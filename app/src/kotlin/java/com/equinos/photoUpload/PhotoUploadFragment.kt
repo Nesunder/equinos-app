@@ -43,7 +43,6 @@ class PhotoUploadFragment : DialogFragment() {
 
     private var imageUri: Uri? = null
     private var _binding: FragmentPhotoUploadBinding? = null
-    private val TAG = PhotoUploadFragment::class.java.simpleName
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -68,6 +67,7 @@ class PhotoUploadFragment : DialogFragment() {
         private const val ARG_INTERESADO = "arg_sereno"
         private const val ARG_DISGUSTADO = "arg_disgustado"
         private const val ARG_IMAGE_PATH = "arg_path"
+        private val TAG = PhotoUploadFragment::class.java.simpleName
 
 
         fun newInstance(
@@ -113,7 +113,7 @@ class PhotoUploadFragment : DialogFragment() {
     override fun onResume() {
         super.onResume()
         viewLifecycleOwner.lifecycleScope.launch {
-            val initialData = context?.let { it1 -> DataRepository.loadInitialData() }
+            val initialData = context?.let { _ -> DataRepository.loadInitialData() }
             initialData?.let {
                 viewModel.updateData(it)
                 adapter.updateData(it)
@@ -167,7 +167,7 @@ class PhotoUploadFragment : DialogFragment() {
                     prediction
                 )
                 cancelProgressDialog()
-                if (validationState == HorseCreatorActivity.ValidationState.VALID) dismiss()
+                if (validationState == Network.ValidationState.VALID) dismiss()
             }
         }
         //avisar que hay que seleccionar un caballo
@@ -219,7 +219,7 @@ class PhotoUploadFragment : DialogFragment() {
 
     private suspend fun uploadPhoto(
         prediction: String
-    ): HorseCreatorActivity.ValidationState {
+    ): Network.ValidationState {
         return withContext(Dispatchers.IO) {
             try {
                 val serenoValue = arguments?.getFloat(ARG_SERENO)
@@ -257,14 +257,14 @@ class PhotoUploadFragment : DialogFragment() {
                 val client = OkHttpClient()
                 val response = client.newCall(request).execute()
                 if (response.isSuccessful) {
-                    HorseCreatorActivity.ValidationState.VALID
+                    Network.ValidationState.VALID
                 } else {
-                    HorseCreatorActivity.ValidationState.INVALID
+                    Network.ValidationState.INVALID
                 }
             } catch (e: IOException) {
                 Log.d(TAG, e.stackTraceToString())
                 e.printStackTrace()
-                HorseCreatorActivity.ValidationState.INVALID
+                Network.ValidationState.INVALID
             }
         }
     }
