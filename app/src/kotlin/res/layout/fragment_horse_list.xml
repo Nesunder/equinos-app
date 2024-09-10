@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/establo"
-    android:paddingBottom="70dp"
+    android:paddingBottom="55dp"
     tools:context="com.equinos.horseList.HorseListFragment">
 
     <RelativeLayout
@@ -38,7 +38,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="130dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="40dp"
         android:alpha="0.85"
         app:cardCornerRadius="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
