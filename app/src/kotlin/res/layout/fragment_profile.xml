@@ -24,10 +24,10 @@
         android:id="@+id/profilePhoto"
         android:layout_width="110dp"
         android:layout_height="110dp"
+        android:scaleType="centerCrop"
         android:src="@drawable/avatar_profile"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:scaleType="centerCrop"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -429,9 +429,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#80000000"
-        android:visibility="gone"
         android:clickable="true"
-        android:focusable="true" />
+        android:focusable="true"
+        android:visibility="gone" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/photoCardView"
@@ -457,10 +457,10 @@
                 android:id="@+id/changePhotoLl"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
                 android:background="?attr/selectableItemBackground"
                 android:orientation="horizontal"
                 android:padding="8dp"
-                android:layout_marginTop="16dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -472,6 +472,7 @@
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:layout_marginStart="16dp"
+                    android:scaleType="centerCrop"
                     android:src="@drawable/caballo_inicio"
                     app:shapeAppearanceOverlay="@style/Circular" />
 
@@ -528,11 +529,11 @@
                 layout="@layout/handle_view"
                 android:layout_width="wrap_content"
                 android:layout_height="4dp"
-                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintBottom_toTopOf="@id/changePhotoLl"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.5"/>
+                app:layout_constraintVertical_bias="0.5" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

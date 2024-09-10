@@ -129,16 +129,16 @@ class ProfileFragment : Fragment() {
 
     private fun uploadProfilePhoto(uri: Uri) {
         setProfileImage(uri)
-        Network.saveStringProperty("image", uri.toString())
         lifecycleScope.launch {
             userRepository.uploadProfileImage(uri)
+            Network.saveStringProperty("image", uri.toString())
         }
     }
 
     private fun setProfileImage(uri: Uri) {
-        Glide.with(binding.profilePhoto.context)
-            .load(uri)
-            .into(binding.profilePhoto)
+        val request = Glide.with(binding.profilePhoto.context).load(uri)
+        request.into(binding.profilePhoto)
+        request.into(binding.selectableImage)
     }
 
     private fun hideOrShowPhotoCardView() {
