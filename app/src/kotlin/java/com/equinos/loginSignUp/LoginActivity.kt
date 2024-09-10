@@ -1,6 +1,7 @@
 package com.equinos.loginSignUp
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.text.method.HideReturnsTransformationMethod
 import android.text.method.PasswordTransformationMethod
@@ -11,9 +12,9 @@ import org.json.JSONObject
 import com.equinos.MainActivity
 import com.equinos.R
 import com.equinos.databinding.ActivityLoginBinding
+import com.equinos.profile.Role
+import com.equinos.profile.User
 import com.equinos.settings.Network
-import com.equinos.settings.Network.Companion.setAccessToken
-import com.equinos.settings.Network.Companion.setIdUsuario
 
 class LoginActivity : BaseActivity() {
 
@@ -81,22 +82,39 @@ class LoginActivity : BaseActivity() {
     }
 
     private suspend fun performLogin(): Boolean {
-        val email = loginBinding.emailEditText.text.toString().trim()
+        val identification = loginBinding.emailEditText.text.toString().trim()
         val password = loginBinding.passwordEditText.text.toString().trim()
 
         val requestBody = JSONObject().apply {
-            put("identification", email)
+            put("identification", identification)
             put("password", password)
         }
 
         return try {
-            val response = performNetworkOperation("${Network.BASE_URL}/api/auth/login", requestBody)
+            val response =
+                performNetworkOperation("${Network.BASE_URL}/api/auth/login", requestBody)
             val jsonResponse = JSONObject(response)
             val accessToken = jsonResponse.getString("accessToken")
-            setAccessToken(accessToken)
-            val idUsuario = jsonResponse.getString("userId")
-            setIdUsuario(idUsuario)
+            val idUsuario = jsonResponse.getLong("userId")
+            val email = jsonResponse.getString("email")
+            val username = jsonResponse.getString("username")
+            val role = jsonResponse.getString("role")
+            val image = jsonResponse.getString("image")
+            var imageUri: String? = null
 
+            if (!image.equals("") && !image.equals("null")) {
+                imageUri = "${Network.BASE_URL}/api/images/users/$image"
+            }
+
+            val user = User(
+                idUsuario,
+                username,
+                email,
+                if (imageUri != null) Uri.parse(imageUri) else null,
+                Role.valueOf(role),
+                accessToken
+            )
+            Network.saveUserData(user)
             true
         } catch (e: Exception) {
             e.printStackTrace()

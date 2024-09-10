@@ -2,17 +2,26 @@ package com.equinos.settings
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
+import com.equinos.profile.Role
+import com.equinos.profile.User
 import java.lang.ref.WeakReference
 
+
 class Network {
+    enum class ValidationState {
+        VALID, INVALID
+    }
     companion object {
-        const val BASE_URL: String = "http://10.0.2.2:8080"
+        const val BASE_URL: String = "https://4bc9-181-168-26-49.ngrok-free.app"
 
         private var contextRef: WeakReference<Context>? = null
+        private lateinit var sharedPreferences: SharedPreferences
 
         fun initialize(context: Context) {
             contextRef = WeakReference(context.applicationContext)
+            sharedPreferences = getSharedPreferences(context)
         }
 
         fun setAccessToken(token: String?) {
@@ -24,8 +33,6 @@ class Network {
         }
 
         fun getAccessToken(): String? {
-            val context = contextRef?.get() ?: return null
-            val sharedPreferences = getSharedPreferences(context)
             return sharedPreferences.getString("accessToken", "")
         }
 
@@ -34,8 +41,6 @@ class Network {
         }
 
         private fun saveAccessTokenToPrefs(token: String?) {
-            val context = contextRef?.get() ?: return
-            val sharedPreferences = getSharedPreferences(context)
             with(sharedPreferences.edit()) {
                 putString("accessToken", token)
                 apply()
@@ -43,8 +48,6 @@ class Network {
         }
 
         private fun saveIdUsuarioToPrefs(idUsuario: String?) {
-            val context = contextRef?.get() ?: return
-            val sharedPreferences = getSharedPreferences(context)
             with(sharedPreferences.edit()) {
                 putString("idUsuario", idUsuario)
                 apply()
@@ -52,14 +55,10 @@ class Network {
         }
 
         fun getIdUsuario(): String? {
-            val context = contextRef?.get() ?: return null
-            val sharedPreferences = getSharedPreferences(context)
             return sharedPreferences.getString("idUsuario", "")
         }
 
         private fun clearAccessTokenFromPrefs() {
-            val context = contextRef?.get() ?: return
-            val sharedPreferences = getSharedPreferences(context)
             with(sharedPreferences.edit()) {
                 remove("accessToken")
                 apply()
@@ -71,6 +70,41 @@ class Network {
                 "user_prefs",
                 AppCompatActivity.MODE_PRIVATE
             )
+        }
+
+        fun saveUserData(user: User) {
+            val editor = sharedPreferences.edit()
+            editor.putLong("userId", user.userId)
+            editor.putString("username", user.username)
+            editor.putString("email", user.email)
+            editor.putString("image", user.image.toString())
+            editor.putString("role", user.role.toString())
+            editor.putString("accessToken", user.accessToken)
+            editor.apply()
+        }
+
+        fun getUserData(): User {
+            val userId = sharedPreferences.getLong("userId", -1)
+            val username = sharedPreferences.getString("username", null)
+            val email = sharedPreferences.getString("email", null)
+            val image = sharedPreferences.getString("image", null)
+            val role = sharedPreferences.getString("role", null)
+            val accessToken = sharedPreferences.getString("accessToken", null)
+            return User(
+                userId,
+                username!!,
+                email!!,
+                Uri.parse(image),
+                Role.valueOf(role!!),
+                accessToken!!
+            )
+        }
+
+        fun saveStringProperty(property: String, value: String?) {
+            with(sharedPreferences.edit()) {
+                putString(property, value)
+                apply()
+            }
         }
     }
 }
