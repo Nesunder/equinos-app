@@ -36,7 +36,7 @@ class Network {
             return sharedPreferences.getString("accessToken", "")
         }
 
-        fun clearAccessToken() {
+        private fun clearAccessToken() {
             clearAccessTokenFromPrefs()
         }
 
@@ -98,6 +98,18 @@ class Network {
                 Role.valueOf(role!!),
                 accessToken!!
             )
+        }
+
+        fun clearUserData() {
+            clearAccessToken()
+            with(sharedPreferences.edit()) {
+                remove("userId")
+                remove("username")
+                remove("email")
+                remove("image")
+                remove("role")
+                apply()
+            }
         }
 
         fun saveStringProperty(property: String, value: String?) {

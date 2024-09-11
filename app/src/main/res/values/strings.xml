@@ -70,7 +70,7 @@
     <string name="boton_notas">Botón notas</string>
     <string name="configuracion">Configuración</string>
     <string name="boton_configuracion">Botón configuración</string>
-    <string name="desloguearse">Desloguearse</string>
+    <string name="desloguearse">Salir</string>
     <string name="boton_para_desloguearse">Botón para desloguearse</string>
     <string name="notas">Notas</string>
     <string name="eliminar_foto_actual">Eliminar foto actual</string>

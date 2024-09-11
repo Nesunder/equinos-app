@@ -2,6 +2,7 @@ package com.equinos.profile
 
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -17,6 +18,7 @@ import android.view.ViewGroup
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -25,6 +27,8 @@ import com.bumptech.glide.Glide
 import com.equinos.R
 import com.equinos.appRepository.UserRepository
 import com.equinos.databinding.FragmentProfileBinding
+import com.equinos.gallery.GalleryFragment
+import com.equinos.loginSignUp.LoginActivity
 import com.equinos.settings.Network
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -124,14 +128,58 @@ class ProfileFragment : Fragment() {
         binding.changePhotoLl.setOnClickListener {
             openGalleryLauncher.launch(pickIntent)
         }
+
+        binding.cvLogOut.setOnClickListener {
+            showConfirmationDialog(requireContext()) {
+                logout()
+            }
+        }
+
+        binding.cvGalery.setOnClickListener {
+            val galleryFragment = GalleryFragment()
+            activity?.supportFragmentManager?.beginTransaction()
+                ?.replace(
+                    ((view as ViewGroup).parent as View).id,
+                    galleryFragment,
+                    "galleryFragment"
+                )
+                ?.addToBackStack(null)
+                ?.commit()
+        }
+
         return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    private fun showConfirmationDialog(context: Context, onConfirm: () -> Unit) {
+        AlertDialog.Builder(context)
+            .setTitle("Confirmar acción")
+            .setMessage("Seguro que quiere salir?")
+            .setPositiveButton("Si") { dialog, _ ->
+                onConfirm()
+                dialog.dismiss()
+            }
+            .setNegativeButton("No") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun logout() {
+        activity?.finish()
+        Network.clearUserData()
+        startActivity(Intent(requireContext(), LoginActivity::class.java))
     }
 
     private fun uploadProfilePhoto(uri: Uri) {
         setProfileImage(uri)
+        Network.saveStringProperty("image", uri.toString())
         lifecycleScope.launch {
             userRepository.uploadProfileImage(uri)
-            Network.saveStringProperty("image", uri.toString())
         }
     }
 
@@ -162,11 +210,6 @@ class ProfileFragment : Fragment() {
         binding.overlayView.isClickable = true
         binding.overlayView.isFocusable = true
         showingPhotoCardview = true
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 
     private fun onSwipeDown() {
