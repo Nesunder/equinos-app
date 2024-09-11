@@ -85,6 +85,7 @@
     <string name="ver_todo">Ver todo</string>
     <string name="tips">Tips</string>
     <string name="usuario_avanzado">Usuario avanzado</string>
+    <string name="lista_de_tips">Lista de tips</string>
     <string-array name="sexo_array">
         <item>Masculino</item>
         <item>Femenino</item>

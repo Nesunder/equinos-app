@@ -2,7 +2,7 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="205dp"
-    android:layout_height="240dp"
+    android:layout_height="205dp"
     android:layout_margin="8dp"
     app:cardCornerRadius="10dp"
     app:cardElevation="3dp">
@@ -41,6 +41,7 @@
             android:layout_marginStart="8dp"
             android:layout_marginTop="4dp"
             android:layout_marginEnd="8dp"
+            android:layout_marginBottom="4dp"
             android:lines="2"
             android:text="@string/subtitle"
             android:textColor="@color/greyText" />

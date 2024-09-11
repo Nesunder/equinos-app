@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.equinos.ImageClassificationActivity
 import com.equinos.databinding.FragmentHomeBinding
 import com.equinos.horseCreation.HorseCreatorActivity
+import com.equinos.tips.TipsActivity
 import com.equinos.tips.TipsAdapter
 import com.equinos.tips.TipsList
 
@@ -60,6 +61,11 @@ class HomeFragment : Fragment() {
 
         binding.addHorseBtn.setOnClickListener {
             startActivity(horseCreatorActivity)
+        }
+
+        val tipsActivity = Intent(context, TipsActivity::class.java)
+        binding.viewAllTips.setOnClickListener {
+            startActivity(tipsActivity)
         }
 
         return binding.root

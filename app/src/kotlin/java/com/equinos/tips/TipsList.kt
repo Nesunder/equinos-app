@@ -6,17 +6,17 @@ object TipsList {
     val tipsList: List<TipsDomain> = listOf(
         TipsDomain("Cómo clasificar una foto", "Para clasificar una foto...", R.drawable.tips_foto),
         TipsDomain(
-            "Sacar una foto y clasificar", "Para clasificar una foto...", R.drawable.tips_foto
+            "Sacar una foto y clasificar", "Para sacar una foto...", R.drawable.tips_capture
         ),
         TipsDomain(
             "Clasificar foto de la galería, desde la cámara",
             "Para clasificar una foto...",
-            R.drawable.tips_foto
+            R.drawable.tips_capture_galery
         ),
         TipsDomain(
-            "Clasificar foto de la galería, desde la cámara",
-            "Para clasificar una foto...",
-            R.drawable.tips_foto
+            "Interfaz de clasificación dedicada",
+            "Para clasificar una foto ya capturada...",
+            R.drawable.tips_dedicada
         )
     )
 }
