@@ -7,9 +7,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Base64
 import android.widget.AdapterView
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -21,11 +19,9 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.DataOutputStream
+import java.net.HttpURLConnection
+import java.net.URL
 import org.json.JSONObject
 import com.equinos.ImageHelper
 import com.equinos.R
@@ -33,7 +29,6 @@ import com.equinos.appRepository.MainViewModel
 import com.equinos.databinding.ActivityHorseCreationBinding
 import com.equinos.settings.Network
 import java.io.IOException
-import java.io.InputStream
 import java.util.Calendar
 
 
@@ -151,38 +146,47 @@ class HorseCreatorActivity : AppCompatActivity() {
     private suspend fun uploadHorse(caballoJson: JSONObject, image: ByteArray?): Network.ValidationState {
         return withContext(Dispatchers.IO) {
             try {
-                val client = OkHttpClient()
+                val url = URL("${Network.BASE_URL}/api/horses")
+                val connection = url.openConnection() as HttpURLConnection
+                val token = Network.getAccessToken()
+                val boundary = "Boundary-" + System.currentTimeMillis()
+                val lineEnd = "\r\n"
 
-                // Construir el cuerpo de la solicitud multipart
-                val multipartBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("Authorization", "Bearer $token")
+                connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+                connection.doOutput = true
 
-                // Agregar la parte del JSON del caballo
-                val jsonMediaType = "application/json".toMediaTypeOrNull()
-                val caballoPart = caballoJson.toString().toRequestBody(jsonMediaType)
-                multipartBuilder.addFormDataPart("horse", "caballo.json", caballoPart)
+                val outputStream = DataOutputStream(connection.outputStream)
 
-                // Agregar la parte de la imagen si existe
-                image?.let {
-                    val imageMediaType = "image/jpeg".toMediaTypeOrNull()
-                    val imagePart = it.toRequestBody(imageMediaType)
-                    multipartBuilder.addFormDataPart("image", "imagen.jpg", imagePart)
+                outputStream.writeBytes("--$boundary$lineEnd")
+                outputStream.writeBytes("Content-Disposition: form-data; name=\"horse\"; filename=\"caballo.json\"$lineEnd")
+                outputStream.writeBytes("Content-Type: application/json$lineEnd")
+                outputStream.writeBytes(lineEnd)
+                outputStream.writeBytes(caballoJson.toString())
+                outputStream.writeBytes(lineEnd)
+
+                if (image != null) {
+                    outputStream.writeBytes("--$boundary$lineEnd")
+                    outputStream.writeBytes("Content-Disposition: form-data; name=\"image\"; filename=\"imagen.jpg\"$lineEnd")
+                    outputStream.writeBytes("Content-Type: image/jpeg$lineEnd")
+                    outputStream.writeBytes(lineEnd)
+                    outputStream.write(image)
+                    outputStream.writeBytes(lineEnd)
                 }
 
-                val multipartBody = multipartBuilder.build()
+                outputStream.writeBytes("--$boundary--$lineEnd")
+                outputStream.flush()
+                outputStream.close()
 
-                val token = Network.getAccessToken()
-                val request = Request.Builder()
-                    .url("${Network.BASE_URL}/api/horses")
-                    .post(multipartBody)
-                    .addHeader("Authorization", "Bearer $token")
-                    .build()
+                val responseCode = connection.responseCode
 
-                val response = client.newCall(request).execute()
-                if (response.isSuccessful) {
+                if (responseCode in 200..299) {
                     Network.ValidationState.VALID
                 } else {
                     Network.ValidationState.INVALID
                 }
+
             } catch (e: IOException) {
                 Network.ValidationState.INVALID
             }
@@ -216,25 +220,6 @@ class HorseCreatorActivity : AppCompatActivity() {
     private fun openGallery() {
         val pickIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         openGalleryLauncher.launch(pickIntent)
-    }
-
-    // Usado para pruebas
-    private fun printImageBytes(uri: Uri) {
-        try {
-            val inputStream: InputStream? = contentResolver.openInputStream(uri)
-            val bytes: ByteArray? = inputStream?.readBytes()
-
-            bytes?.let {
-                val encodedImage = Base64.encodeToString(it, Base64.DEFAULT)
-                println("Image in bytes: $encodedImage")
-            } ?: run {
-                Toast.makeText(this, "No se pudo leer la imagen", Toast.LENGTH_SHORT).show()
-            }
-
-        } catch (e: Exception) {
-            Toast.makeText(this, "Error al leer la imagen: ${e.message}", Toast.LENGTH_SHORT).show()
-            e.printStackTrace()
-        }
     }
 
     private fun showDialog(context: Context) {

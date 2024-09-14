@@ -20,11 +20,9 @@ import com.bumptech.glide.Glide
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.DataOutputStream
+import java.net.HttpURLConnection
+import java.net.URL
 import org.json.JSONObject
 import com.equinos.ImageHelper
 import com.equinos.R
@@ -226,37 +224,59 @@ class PhotoUploadFragment : DialogFragment() {
                 val interesadoValue = arguments?.getFloat(ARG_INTERESADO)
                 val disgustadoValue = arguments?.getFloat(ARG_DISGUSTADO)
 
-                val jsonDtoAnalysis =
-                    buildJson(prediction, serenoValue!!, interesadoValue!!, disgustadoValue!!)
-
-                // Construir el cuerpo de la solicitud multipart
-                val multipartBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
-                // Agregar la parte del JSON del caballo
-                val jsonMediaType = "application/json".toMediaTypeOrNull()
-                val analysisPart = jsonDtoAnalysis.toString().toRequestBody(jsonMediaType)
-                multipartBuilder.addFormDataPart("analysis", "analysis.json", analysisPart)
+                val jsonDtoAnalysis = buildJson(
+                    prediction,
+                    serenoValue!!,
+                    interesadoValue!!,
+                    disgustadoValue!!
+                )
 
                 val image: ByteArray? = imageUri?.let {
                     imageHelper.getByteArrayImage(
                         requireContext(), it
                     )
                 }
-                // Agregar la parte de la imagen si existe
+
+                val boundary = "Boundary-" + System.currentTimeMillis()
+                val lineEnd = "\r\n"
+
+                val url = URL("${Network.BASE_URL}/api/analysis")
+                val connection = url.openConnection() as HttpURLConnection
+                val token = Network.getAccessToken()
+
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("Authorization", "Bearer $token")
+                connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+                connection.doOutput = true
+
+                val outputStream = DataOutputStream(connection.outputStream)
+
+                outputStream.writeBytes("--$boundary$lineEnd")
+                outputStream.writeBytes(
+                    "Content-Disposition: form-data; name=\"analysis\"; filename=\"analysis.json\"$lineEnd"
+                )
+                outputStream.writeBytes("Content-Type: application/json$lineEnd")
+                outputStream.writeBytes(lineEnd)
+                outputStream.writeBytes(jsonDtoAnalysis.toString())
+                outputStream.writeBytes(lineEnd)
+
                 image?.let {
-                    val imageMediaType = "image/jpeg".toMediaTypeOrNull()
-                    val imagePart = it.toRequestBody(imageMediaType)
-                    multipartBuilder.addFormDataPart("image", "imagen.jpg", imagePart)
+                    outputStream.writeBytes("--$boundary$lineEnd")
+                    outputStream.writeBytes(
+                        "Content-Disposition: form-data; name=\"image\"; filename=\"imagen.jpg\"$lineEnd"
+                    )
+                    outputStream.writeBytes("Content-Type: image/jpeg$lineEnd")
+                    outputStream.writeBytes(lineEnd)
+                    outputStream.write(it)
+                    outputStream.writeBytes(lineEnd)
                 }
 
-                val multipartBody = multipartBuilder.build()
-                val token = Network.getAccessToken()
-                val request =
-                    Request.Builder().url("${Network.BASE_URL}/api/analysis").post(multipartBody)
-                        .addHeader("Authorization", "Bearer $token").build()
+                outputStream.writeBytes("--$boundary--$lineEnd")
+                outputStream.flush()
+                outputStream.close()
 
-                val client = OkHttpClient()
-                val response = client.newCall(request).execute()
-                if (response.isSuccessful) {
+                val responseCode = connection.responseCode
+                if (responseCode in 200..299) {
                     Network.ValidationState.VALID
                 } else {
                     Network.ValidationState.INVALID

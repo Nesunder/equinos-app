@@ -7,12 +7,10 @@ import com.equinos.ImageHelper
 import com.equinos.settings.Network
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.DataOutputStream
 import java.io.IOException
+import java.net.HttpURLConnection
+import java.net.URL
 
 class UserRepository(private val context: Context) {
 
@@ -20,7 +18,6 @@ class UserRepository(private val context: Context) {
         ImageHelper()
     }
 
-    private val client = OkHttpClient()
     private val url = "/api/users"
 
     suspend fun uploadProfileImage(imageUri: Uri): Network.ValidationState {
@@ -31,22 +28,38 @@ class UserRepository(private val context: Context) {
                         context, it
                     )
                 }
-                val multipartBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
 
-                image?.let {
-                    val imageMediaType = "image/jpeg".toMediaTypeOrNull()
-                    val imagePart = it.toRequestBody(imageMediaType)
-                    multipartBuilder.addFormDataPart("image", "imagen.jpg", imagePart)
-                }
-                val multipartBody = multipartBuilder.build()
+                val boundary = "Boundary-" + System.currentTimeMillis()
+                val lineEnd = "\r\n"
+
+                val url = URL("${Network.BASE_URL}${url}/image")
+                val connection = url.openConnection() as HttpURLConnection
                 val token = Network.getAccessToken()
 
-                val request =
-                    Request.Builder().url("${Network.BASE_URL}${url}/image").post(multipartBody)
-                        .addHeader("Authorization", "Bearer $token").build()
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("Authorization", "Bearer $token")
+                connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+                connection.doOutput = true
 
-                val response = client.newCall(request).execute()
-                if (response.isSuccessful) {
+                val outputStream = DataOutputStream(connection.outputStream)
+
+                image?.let {
+                    outputStream.writeBytes("--$boundary$lineEnd")
+                    outputStream.writeBytes(
+                        "Content-Disposition: form-data; name=\"image\"; filename=\"imagen.jpg\"$lineEnd"
+                    )
+                    outputStream.writeBytes("Content-Type: image/jpeg$lineEnd")
+                    outputStream.writeBytes(lineEnd)
+                    outputStream.write(it)
+                    outputStream.writeBytes(lineEnd)
+                }
+
+                outputStream.writeBytes("--$boundary--$lineEnd")
+                outputStream.flush()
+                outputStream.close()
+
+                val responseCode = connection.responseCode
+                if (responseCode in 200..299) {
                     Network.ValidationState.VALID
                 } else {
                     Network.ValidationState.INVALID
