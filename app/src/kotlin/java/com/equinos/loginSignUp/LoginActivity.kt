@@ -103,7 +103,7 @@ class LoginActivity : BaseActivity() {
             var imageUri: String? = null
 
             if (!image.equals("") && !image.equals("null")) {
-                imageUri = "${Network.BASE_URL}/api/images/users/$image"
+                imageUri = "${Network.BASE_URL}/api/images/users/compressed_$image"
             }
 
             val user = User(
