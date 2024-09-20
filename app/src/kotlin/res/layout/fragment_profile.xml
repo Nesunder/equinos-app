@@ -473,7 +473,7 @@
                     android:layout_height="48dp"
                     android:layout_marginStart="16dp"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/caballo_inicio"
+                    android:src="@drawable/avatar_profile"
                     app:shapeAppearanceOverlay="@style/Circular" />
 
                 <TextView
