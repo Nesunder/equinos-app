@@ -63,9 +63,9 @@
     <string name="flecha_de_acceso">Flecha de acceso</string>
     <string name="boton_notificaciones">Botón notificaciones</string>
     <string name="work_in_progess">Work in progess…</string>
-    <string name="pedrito_sanchez">Pedrito Sanchez</string>
-    <string name="veterinario">Veterinario</string>
-    <string name="pedritosan_gmail_com">pedritosan@gmail.com</string>
+    <string name="nombre_usuario">Nombre de usuario</string>
+    <string name="tipo_usuario">Tipo de usuario</string>
+    <string name="ejemplo_mail">ejemplo@gmail.com</string>
     <string name="compartir">Compartir</string>
     <string name="boton_notas">Botón notas</string>
     <string name="configuracion">Configuración</string>
@@ -86,8 +86,15 @@
     <string name="tips">Tips</string>
     <string name="usuario_avanzado">Usuario avanzado</string>
     <string name="lista_de_tips">Lista de tips</string>
+    <string name="menu_title">Menu</string>
     <string-array name="sexo_array">
         <item>Masculino</item>
         <item>Femenino</item>
     </string-array>
+    <string name="open_camera">Abrir cámara</string>
+    <string name="gallery">galería</string>
+    <string name="repository">Repositorio</string>
+    <string name="title_notifications">Notificaciones</string>
+    <string name="cambiar_tema">Cambiar \ntema </string>
+    <string name="modo_sin_conexi_n">Modo sin conexión</string>
 </resources>

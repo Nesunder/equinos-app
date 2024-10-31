@@ -52,20 +52,7 @@ android {
         viewBinding true
     }
 
-    flavorDimensions = ["language"]
-    productFlavors {
-        kotlin {
-            getIsDefault().set(true)
-            dimension 'language'
-            applicationIdSuffix ".kotlin"
-            versionNameSuffix "-kotlin"
-        }
-        java {
-            dimension 'language'
-            applicationIdSuffix ".java"
-            versionNameSuffix "-java"
-        }
-    }
+
     sourceSets {
         main {
             assets {
@@ -133,5 +120,5 @@ dependencies {
 
 // Download default models; if you wish to use your own models then
 // place them in the "assets" directory and comment out this line.
-project.ext.ASSET_DIR = projectDir.toString() + '/src/main/assets'
-apply from: 'download.gradle'
+//project.ext.ASSET_DIR = projectDir.toString() + '/src/main/assets'
+//apply from: 'download.gradle'
