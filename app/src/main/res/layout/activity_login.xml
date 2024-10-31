@@ -98,8 +98,8 @@
                     android:id="@+id/passwordEditText"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
-                    android:layout_marginTop="17dp"
                     android:layout_centerVertical="true"
+                    android:layout_marginTop="17dp"
                     android:hint="@string/ingrese_su_contrasenia"
                     android:importantForAutofill="no"
                     android:inputType="textPassword"
@@ -107,6 +107,7 @@
                     android:textColorHint="@color/greyText"
                     android:textSize="16sp"
                     tools:ignore="RtlSymmetry" />
+
                 <ImageView
                     android:id="@+id/passwordToggle"
                     android:layout_width="wrap_content"
@@ -163,12 +164,20 @@
                 app:strokeColor="@color/colorPrimary"
                 app:strokeWidth="1dp" />
 
-            <TextView
-                android:id="@+id/tvNoConecction"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="102dp"
-                android:text="@string/modo_sin_conexi_n" />
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:id="@+id/tvNoConecction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:textSize="16dp"
+                    android:gravity="center"
+                    android:text="@string/modo_sin_conexi_n" />
+            </RelativeLayout>
+
 
         </LinearLayout>
 
