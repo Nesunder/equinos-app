@@ -1,6 +1,7 @@
 package com.equinos.photoUpload
 
 import android.app.Dialog
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -11,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.ScrollView
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -168,10 +170,23 @@ class PhotoUploadFragment : DialogFragment() {
                     prediction
                 )
                 cancelProgressDialog()
-                if (validationState == Network.ValidationState.VALID) dismiss()
+                if (validationState == Network.ValidationState.VALID) {
+                    showDialog(requireContext())
+                }
             }
         }
-        //avisar que hay que seleccionar un caballo
+    }
+
+    private fun showDialog(
+        context: Context,
+    ) {
+        AlertDialog.Builder(context)
+            .setTitle("Creación de análisis")
+            .setMessage("Se creó un análisis con la foto subida")
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+                dismiss()
+            }.show()
     }
 
     private fun setupRecyclerView() {
