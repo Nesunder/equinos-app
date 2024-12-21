@@ -12,7 +12,7 @@ import com.equinos.settings.Network
 import java.net.HttpURLConnection
 import java.net.URL
 
-object DataRepository {
+object HorseRepository {
     private val _data = MutableLiveData<List<HorseItem>>()
     val data: LiveData<List<HorseItem>> get() = _data
 

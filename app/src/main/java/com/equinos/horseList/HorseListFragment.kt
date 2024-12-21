@@ -14,8 +14,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.coroutines.launch
-import com.equinos.appRepository.DataRepository
-import com.equinos.appRepository.MainViewModel
+import com.equinos.appRepository.HorseRepository
+import com.equinos.appRepository.HorseViewModel
 import com.equinos.databinding.FragmentHorseListBinding
 import com.equinos.horseCreation.HorseCreatorActivity
 import com.equinos.horseCreation.HorseItem
@@ -25,7 +25,7 @@ import com.equinos.settings.Network
 
 class HorseListFragment : Fragment() {
 
-    private lateinit var viewModel: MainViewModel
+    private lateinit var viewModel: HorseViewModel
     private var _binding: FragmentHorseListBinding? = null
 
     // This property is only valid between onCreateView and
@@ -90,7 +90,7 @@ class HorseListFragment : Fragment() {
     }
 
     private fun setupRecyclerView(initialData: List<HorseItem>) {
-        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
+        viewModel = ViewModelProvider(this)[HorseViewModel::class.java]
         viewModel.updateData(emptyList())
         viewModel.updateData(initialData)
         adapter = HorseItemAdapter(viewModel.data.value!!) {
@@ -109,7 +109,7 @@ class HorseListFragment : Fragment() {
     private fun updateHorseListData(onDataLoaded: (List<HorseItem>) -> Unit) {
         viewLifecycleOwner.lifecycleScope.launch {
             val data = context?.let { it1 ->
-                DataRepository.loadInitialData()
+                HorseRepository.loadInitialData()
             }
             data?.let {
                 onDataLoaded(it)

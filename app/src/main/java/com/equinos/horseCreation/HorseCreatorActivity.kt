@@ -25,7 +25,7 @@ import java.net.URL
 import org.json.JSONObject
 import com.equinos.ImageHelper
 import com.equinos.R
-import com.equinos.appRepository.MainViewModel
+import com.equinos.appRepository.HorseViewModel
 import com.equinos.databinding.ActivityHorseCreationBinding
 import com.equinos.settings.Network
 import java.io.IOException
@@ -34,15 +34,9 @@ import java.util.Calendar
 
 class HorseCreatorActivity : AppCompatActivity() {
     private var imageSelected: Boolean = false
-    private val newHorseItem: HorseItem by lazy {
-        HorseItem(
-            -1, "Nuevo caballo", Uri.parse(
-                "android.resource://com.equinos/" + R.drawable.caballo_inicio
-            )
-        )
-    }
+
     private lateinit var horseCreatorBinding: ActivityHorseCreationBinding
-    private lateinit var viewModel: MainViewModel
+    private lateinit var viewModel: HorseViewModel
     private lateinit var imageUri: Uri
     private var dateInput: String = ""
     private val customProgressDialog: Dialog by lazy {
@@ -60,7 +54,6 @@ class HorseCreatorActivity : AppCompatActivity() {
                 result.data?.data?.let { uri ->
                     imageUri = uri
                     horseCreatorBinding.imgChooser.setImageURI(uri)
-                    newHorseItem.imageUri = uri
                     imageSelected = true
                 }
             }
@@ -82,7 +75,7 @@ class HorseCreatorActivity : AppCompatActivity() {
             openGallery()
         }
 
-        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
+        viewModel = ViewModelProvider(this)[HorseViewModel::class.java]
 
         horseCreatorBinding.cancelButton.setOnClickListener {
             finish()
@@ -129,7 +122,6 @@ class HorseCreatorActivity : AppCompatActivity() {
             )
 
             if (imageSelected) {
-                newHorseItem.name = nameInput
                 val bytes: ByteArray? =
                     imageHelper.getByteArrayImage(this@HorseCreatorActivity, imageUri)
                 lifecycleScope.launch {

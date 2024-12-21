@@ -28,8 +28,8 @@ import java.net.URL
 import org.json.JSONObject
 import com.equinos.ImageHelper
 import com.equinos.R
-import com.equinos.appRepository.DataRepository
-import com.equinos.appRepository.MainViewModel
+import com.equinos.appRepository.HorseRepository
+import com.equinos.appRepository.HorseViewModel
 import com.equinos.databinding.FragmentPhotoUploadBinding
 import com.equinos.gallery.ImageInfo
 import com.equinos.horseCreation.HorseItem
@@ -49,7 +49,7 @@ class PhotoUploadFragment : DialogFragment() {
     private val binding get() = _binding!!
     private lateinit var adapter: HorseItemAdapter
     private var isDropdownVisible = false
-    private lateinit var viewModel: MainViewModel
+    private lateinit var viewModel: HorseViewModel
     private var selectedHorse: HorseItem? = null
 
     private val imageHelper: ImageHelper by lazy {
@@ -115,7 +115,7 @@ class PhotoUploadFragment : DialogFragment() {
         val noConnectionMode = Network.getNoConnectionMode()
         if (!noConnectionMode) {
             viewLifecycleOwner.lifecycleScope.launch {
-                val initialData = context?.let { _ -> DataRepository.loadInitialData() }
+                val initialData = context?.let { _ -> HorseRepository.loadInitialData() }
                 initialData?.let {
                     viewModel.updateData(it)
                     adapter.updateData(it)
@@ -190,7 +190,7 @@ class PhotoUploadFragment : DialogFragment() {
     }
 
     private fun setupRecyclerView() {
-        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
+        viewModel = ViewModelProvider(this)[HorseViewModel::class.java]
 
         adapter = HorseItemAdapter(viewModel.data.value!!) { selectedItem: HorseItem ->
             selectedHorse = selectedItem
