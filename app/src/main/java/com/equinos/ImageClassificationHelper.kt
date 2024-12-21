@@ -236,12 +236,12 @@ class ImageClassificationHelper(
         return sortedCategories
     }
 
-    //Procesamiento manual, metodo actual
+    //Procesamiento manual, método actual
     fun classifyImageManualProcessing(bitmap: Bitmap): List<Recognition> {
-        // Preprocess the image
+        // Preprocesar la imagen
         val inputBuffer = preprocessBitmap(bitmap)
 
-        // Run the model
+        // Ejecutar el modelo
         interpreter.run(inputBuffer.buffer, outputProbabilityBuffer.buffer.rewind())
 
         val labeledProbability =
@@ -254,12 +254,12 @@ class ImageClassificationHelper(
     }
 
     private fun preprocessBitmap(bitmap: Bitmap): TensorBuffer {
-        // Resize the bitmap to the expected width and height
+        // Redimensiona el bitmap a los valores esperados
         val resizedBitmap = Bitmap.createScaledBitmap(
             bitmap, EXPECTED_WIDTH, EXPECTED_HEIGHT, true
         )
 
-        // Convert the bitmap to a ByteBuffer with normalized pixel values
+        // Convierte el bitmap en byteBuffer
         val inputSize = EXPECTED_WIDTH * EXPECTED_HEIGHT * COLORS
         val byteBuffer = ByteBuffer.allocateDirect(4 * inputSize).apply {
             order(ByteOrder.nativeOrder())
@@ -269,18 +269,19 @@ class ImageClassificationHelper(
         resizedBitmap.getPixels(intValues, 0, 299, 0, 0, EXPECTED_WIDTH, EXPECTED_HEIGHT)
 
         for (pixelValue in intValues) {
-            // Normalize pixel values to [0, 1] range
+            // Normalizar los pixeles
             byteBuffer.putFloat(((pixelValue shr 16 and 0xFF) / 255.0f))
             byteBuffer.putFloat(((pixelValue shr 8 and 0xFF) / 255.0f))
             byteBuffer.putFloat(((pixelValue and 0xFF) / 255.0f))
         }
 
-        // Create a TensorBuffer from the normalized image data
+        // Se crea un TensorBuffer con los datos normalizados
         val inputBuffer = TensorBuffer.createFixedSize(
             intArrayOf(1, EXPECTED_WIDTH, EXPECTED_HEIGHT, COLORS),
             DataType.FLOAT32
-        )
-        inputBuffer.loadBuffer(byteBuffer)
+        ).also {
+            it.loadBuffer(byteBuffer)
+        }
 
         return inputBuffer
     }

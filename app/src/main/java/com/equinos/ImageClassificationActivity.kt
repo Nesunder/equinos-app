@@ -111,7 +111,6 @@ class ImageClassificationActivity : AppCompatActivity() {
             saveClassifiedPhoto()
         }
 
-        //agregar una carga o algo para mostrar que está volviendo a calcular
         imageClassificationBinding.reloadBtn.setOnClickListener {
             uri?.let { setImage(it) }
         }
@@ -257,7 +256,6 @@ class ImageClassificationActivity : AppCompatActivity() {
                     "Archivo guardado: $savedImagePath",
                     Toast.LENGTH_SHORT
                 ).show()
-                //shareFile(path)
             } else {
                 Toast.makeText(
                     this@ImageClassificationActivity,

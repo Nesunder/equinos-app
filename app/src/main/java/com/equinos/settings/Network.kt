@@ -14,7 +14,7 @@ class Network {
         VALID, INVALID
     }
     companion object {
-        const val BASE_URL: String = "https://21b7-181-168-26-49.ngrok-free.app"
+        const val BASE_URL: String = "https://equinosapp-api-production.up.railway.app"
 
         private var contextRef: WeakReference<Context>? = null
         private lateinit var sharedPreferences: SharedPreferences
